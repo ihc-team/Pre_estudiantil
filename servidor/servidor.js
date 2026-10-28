@@ -2,7 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
-const pool = require('./conexion');
+const { Prisma } = require('@prisma/client');
+const prisma = require('./conexion');
 
 const {
   validarMontoLimite,
@@ -27,22 +28,41 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Las fechas DATE se manejan como 'AAAA-MM-DD' para evitar problemas de zona horaria
+function fechaATexto(fecha) {
+  return fecha.toISOString().slice(0, 10);
+}
+
+function textoAFecha(texto) {
+  return new Date(`${texto}T00:00:00.000Z`);
+}
+
+function formatearMovimiento(movimiento) {
+  return {
+    id: movimiento.id,
+    concepto: movimiento.concepto,
+    monto: Number(movimiento.monto),
+    fecha: fechaATexto(movimiento.fecha),
+    tipo: movimiento.tipo,
+    categoria: movimiento.categoria,
+    estado: movimiento.estado,
+  };
+}
+
 // ---------- Protección: exige una sesión válida ----------
 async function exigirSesion(req, res, next) {
   const token = (req.headers.authorization || '').replace('Bearer ', '');
   if (!token) return res.status(401).json({ error: 'No hay sesión' });
 
-  const resultado = await pool.query(
-    `SELECT u.id, u.nombre, u.correo
-     FROM sesiones s JOIN usuarios u ON u.id = s.usuario_id
-     WHERE s.token = $1 AND s.expira_en > NOW()`,
-    [token]
-  );
-  if (resultado.rows.length === 0) {
+  const sesion = await prisma.sesion.findFirst({
+    where: { token, expiraEn: { gt: new Date() } },
+    include: { usuario: { select: { id: true, nombre: true, correo: true } } },
+  });
+  if (!sesion) {
     return res.status(401).json({ error: 'Sesión inválida o expirada' });
   }
 
-  req.usuario = resultado.rows[0];
+  req.usuario = sesion.usuario;
   req.token = token;
   next();
 }
@@ -66,13 +86,16 @@ app.post('/registro', async (req, res) => {
 
   try {
     const hash = await bcrypt.hash(contrasena, 10);
-    await pool.query(
-      'INSERT INTO usuarios (nombre, correo, contrasena_hash) VALUES ($1, $2, $3)',
-      [nombre, correo.trim().toLowerCase(), hash]
-    );
+    await prisma.usuario.create({
+      data: {
+        nombre,
+        correo: correo.trim().toLowerCase(),
+        contrasenaHash: hash,
+      },
+    });
     res.status(201).json({ mensaje: 'Cuenta creada' });
   } catch (e) {
-    if (e.code === '23505') {
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
       return res.status(409).json({ error: 'Ese correo ya está registrado' });
     }
     throw e;
@@ -83,22 +106,22 @@ app.post('/registro', async (req, res) => {
 app.post('/login', async (req, res) => {
   const { correo, contrasena } = req.body;
 
-  const resultado = await pool.query(
-    'SELECT * FROM usuarios WHERE correo = $1',
-    [(correo || '').toLowerCase()]
-  );
-  const usuario = resultado.rows[0];
+  const usuario = await prisma.usuario.findUnique({
+    where: { correo: (correo || '').toLowerCase() },
+  });
 
-  if (!usuario || !(await bcrypt.compare(contrasena || '', usuario.contrasena_hash))) {
+  if (!usuario || !(await bcrypt.compare(contrasena || '', usuario.contrasenaHash))) {
     return res.status(401).json({ error: 'Correo o contraseña incorrectos' });
   }
 
   const token = crypto.randomBytes(32).toString('hex');
-  await pool.query(
-    `INSERT INTO sesiones (token, usuario_id, expira_en)
-     VALUES ($1, $2, NOW() + INTERVAL '7 days')`,
-    [token, usuario.id]
-  );
+  await prisma.sesion.create({
+    data: {
+      token,
+      usuarioId: usuario.id,
+      expiraEn: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    },
+  });
 
   res.json({ token, nombre: usuario.nombre });
 });
@@ -110,26 +133,28 @@ app.get('/perfil', exigirSesion, (req, res) => {
 
 // ---------- Cierre de sesión ----------
 app.post('/logout', exigirSesion, async (req, res) => {
-  await pool.query('DELETE FROM sesiones WHERE token = $1', [req.token]);
+  await prisma.sesion.deleteMany({ where: { token: req.token } });
   res.json({ mensaje: 'Sesión cerrada' });
 });
 
 // ---------- Recuperación: genera un código de 6 dígitos ----------
 app.post('/recuperar', async (req, res) => {
-  const resultado = await pool.query(
-    'SELECT id FROM usuarios WHERE correo = $1',
-    [(req.body.correo || '').toLowerCase()]
-  );
-  if (resultado.rows.length === 0) {
+  const usuario = await prisma.usuario.findUnique({
+    where: { correo: (req.body.correo || '').toLowerCase() },
+    select: { id: true },
+  });
+  if (!usuario) {
     return res.status(404).json({ error: 'Ese correo no está registrado' });
   }
 
   const codigo = String(Math.floor(100000 + Math.random() * 900000));
-  await pool.query(
-    `INSERT INTO recuperaciones (usuario_id, codigo, expira_en)
-     VALUES ($1, $2, NOW() + INTERVAL '15 minutes')`,
-    [resultado.rows[0].id, codigo]
-  );
+  await prisma.recuperacion.create({
+    data: {
+      usuarioId: usuario.id,
+      codigo,
+      expiraEn: new Date(Date.now() + 15 * 60 * 1000),
+    },
+  });
 
   // No se envía correo real: el código se devuelve para mostrarlo en la app
   res.json({ codigo });
@@ -142,39 +167,42 @@ app.post('/cambiar-contrasena', async (req, res) => {
     return res.status(400).json({ error: 'La contraseña debe tener mínimo 6 caracteres' });
   }
 
-  const resultado = await pool.query(
-    `SELECT r.id, r.usuario_id
-     FROM recuperaciones r JOIN usuarios u ON u.id = r.usuario_id
-     WHERE u.correo = $1 AND r.codigo = $2 AND r.usado = FALSE AND r.expira_en > NOW()
-     ORDER BY r.id DESC LIMIT 1`,
-    [(correo || '').toLowerCase(), codigo]
-  );
-  if (resultado.rows.length === 0) {
+  const recuperacion = await prisma.recuperacion.findFirst({
+    where: {
+      codigo,
+      usado: false,
+      expiraEn: { gt: new Date() },
+      usuario: { correo: (correo || '').toLowerCase() },
+    },
+    orderBy: { id: 'desc' },
+  });
+  if (!recuperacion) {
     return res.status(400).json({ error: 'Código incorrecto o vencido' });
   }
 
-  const { id, usuario_id } = resultado.rows[0];
   const hash = await bcrypt.hash(nuevaContrasena, 10);
 
-  await pool.query('UPDATE usuarios SET contrasena_hash = $1 WHERE id = $2', [hash, usuario_id]);
-  await pool.query('UPDATE recuperaciones SET usado = TRUE WHERE id = $1', [id]);
-  await pool.query('DELETE FROM sesiones WHERE usuario_id = $1', [usuario_id]);
+  await prisma.$transaction([
+    prisma.usuario.update({
+      where: { id: recuperacion.usuarioId },
+      data: { contrasenaHash: hash },
+    }),
+    prisma.recuperacion.update({
+      where: { id: recuperacion.id },
+      data: { usado: true },
+    }),
+    prisma.sesion.deleteMany({ where: { usuarioId: recuperacion.usuarioId } }),
+  ]);
 
   res.json({ mensaje: 'Contraseña actualizada' });
 });
 
 // ---------- Movimientos ----------
-// fecha como texto y monto como número, para evitar problemas de zona horaria
-const COLUMNAS_MOVIMIENTO = `id, concepto, monto::float8 AS monto,
-  to_char(fecha, 'YYYY-MM-DD') AS fecha, tipo, categoria, estado`;
-
 // Guardar un evento en el historial, dentro de la misma transacción que la acción
-async function registrarEvento(cliente, { usuarioId, tipo, movimientoId = null, monto = null, descripcion = null }) {
-  await cliente.query(
-    `INSERT INTO eventos (usuario_id, tipo, movimiento_id, monto, descripcion)
-     VALUES ($1, $2, $3, $4, $5)`,
-    [usuarioId, tipo, movimientoId, monto, descripcion]
-  );
+async function registrarEvento(tx, { usuarioId, tipo, movimientoId = null, monto = null, descripcion = null }) {
+  await tx.evento.create({
+    data: { usuarioId, tipo, movimientoId, monto, descripcion },
+  });
 }
 
 // Listar los movimientos de la persona con sesión, con búsqueda y filtros opcionales
@@ -184,14 +212,13 @@ app.get('/movimientos', exigirSesion, async (req, res) => {
     return res.status(400).json({ error: lectura.error });
   }
 
-  const resultado = await pool.query(
-    `SELECT ${COLUMNAS_MOVIMIENTO} FROM movimientos
-     WHERE usuario_id = $1 ORDER BY fecha DESC, id DESC`,
-    [req.usuario.id]
-  );
+  const filas = await prisma.movimiento.findMany({
+    where: { usuarioId: req.usuario.id },
+    orderBy: [{ fecha: 'desc' }, { id: 'desc' }],
+  });
 
   // El total sale de la misma lista filtrada que se devuelve: siempre coinciden
-  const movimientos = filtrarMovimientos(resultado.rows, lectura.filtros, hoyTexto());
+  const movimientos = filtrarMovimientos(filas.map(formatearMovimiento), lectura.filtros, hoyTexto());
   res.json({ movimientos, totales: calcularTotales(movimientos) });
 });
 
@@ -228,30 +255,30 @@ app.post('/movimientos', exigirSesion, async (req, res) => {
   }
 
   // El movimiento y su evento viajan en la misma transacción (Tarea 4)
-  const cliente = await pool.connect();
-  try {
-    await cliente.query('BEGIN');
-    const resultado = await cliente.query(
-      `INSERT INTO movimientos (usuario_id, concepto, monto, fecha, tipo, categoria)
-       VALUES ($1, $2, $3, $4, $5, $6) RETURNING ${COLUMNAS_MOVIMIENTO}`,
-      [req.usuario.id, concepto, monto, fecha, tipo, categoria]
-    );
-    const guardado = resultado.rows[0];
-    await registrarEvento(cliente, {
+  const guardado = await prisma.$transaction(async (tx) => {
+    const movimiento = await tx.movimiento.create({
+      data: {
+        usuarioId: req.usuario.id,
+        concepto,
+        monto: new Prisma.Decimal(monto),
+        fecha: textoAFecha(fecha),
+        tipo,
+        categoria,
+      },
+    });
+
+    await registrarEvento(tx, {
       usuarioId: req.usuario.id,
       tipo: tipo === 'ingreso' ? 'ingreso_registrado' : 'gasto_registrado',
-      movimientoId: guardado.id,
-      monto: guardado.monto,
+      movimientoId: movimiento.id,
+      monto: movimiento.monto,
       descripcion: concepto,
     });
-    await cliente.query('COMMIT');
-    res.status(201).json({ movimiento: guardado });
-  } catch (e) {
-    await cliente.query('ROLLBACK');
-    throw e;
-  } finally {
-    cliente.release();
-  }
+
+    return movimiento;
+  });
+
+  res.status(201).json({ movimiento: formatearMovimiento(guardado) });
 });
 
 // Marcar como pagado: solo si está pendiente
@@ -262,45 +289,39 @@ app.post('/movimientos/:id/pagar', exigirSesion, async (req, res) => {
   }
 
   // El UPDATE y el evento viajan en la misma transacción (Tarea 4)
-  const cliente = await pool.connect();
-  try {
-    await cliente.query('BEGIN');
-    const resultado = await cliente.query(
-      `UPDATE movimientos SET estado = 'pagado'
-       WHERE id = $1 AND usuario_id = $2 AND estado = 'pendiente'
-       RETURNING ${COLUMNAS_MOVIMIENTO}`,
-      [id, req.usuario.id]
-    );
+  const guardado = await prisma.$transaction(async (tx) => {
+    const actualizado = await tx.movimiento.updateMany({
+      where: { id, usuarioId: req.usuario.id, estado: 'pendiente' },
+      data: { estado: 'pagado' },
+    });
 
-    if (resultado.rows.length === 0) {
-      // No se actualizó: no existe o ya estaba pagado. No hay nada que guardar.
-      await cliente.query('ROLLBACK');
-      const existe = await pool.query(
-        'SELECT 1 FROM movimientos WHERE id = $1 AND usuario_id = $2',
-        [id, req.usuario.id]
-      );
-      if (existe.rows.length === 0) {
-        return res.status(404).json({ error: 'Movimiento no encontrado' });
-      }
-      return res.status(409).json({ error: 'El movimiento ya está pagado' });
-    }
+    // No se actualizó: no existe o ya estaba pagado. No hay nada que guardar.
+    if (actualizado.count === 0) return null;
 
-    const guardado = resultado.rows[0];
-    await registrarEvento(cliente, {
+    const movimiento = await tx.movimiento.findUnique({ where: { id } });
+    await registrarEvento(tx, {
       usuarioId: req.usuario.id,
       tipo: 'movimiento_pagado',
-      movimientoId: guardado.id,
-      monto: guardado.monto,
-      descripcion: guardado.concepto,
+      movimientoId: movimiento.id,
+      monto: movimiento.monto,
+      descripcion: movimiento.concepto,
     });
-    await cliente.query('COMMIT');
-    res.json({ movimiento: guardado });
-  } catch (e) {
-    await cliente.query('ROLLBACK');
-    throw e;
-  } finally {
-    cliente.release();
+
+    return movimiento;
+  });
+
+  if (!guardado) {
+    const existe = await prisma.movimiento.findFirst({
+      where: { id, usuarioId: req.usuario.id },
+      select: { id: true },
+    });
+    if (!existe) {
+      return res.status(404).json({ error: 'Movimiento no encontrado' });
+    }
+    return res.status(409).json({ error: 'El movimiento ya está pagado' });
   }
+
+  res.json({ movimiento: formatearMovimiento(guardado) });
 });
 
 // Editar: si está pagado, el monto no puede cambiar. El tipo no se modifica.
@@ -328,40 +349,48 @@ app.put('/movimientos/:id', exigirSesion, async (req, res) => {
     return res.status(400).json({ error: 'Categoría inválida' });
   }
 
-  const actual = await pool.query(
-    'SELECT tipo FROM movimientos WHERE id = $1 AND usuario_id = $2',
-    [id, req.usuario.id]
-  );
-  if (actual.rows.length === 0) {
+  const actual = await prisma.movimiento.findFirst({
+    where: { id, usuarioId: req.usuario.id },
+    select: { tipo: true },
+  });
+  if (!actual) {
     return res.status(404).json({ error: 'Movimiento no encontrado' });
   }
 
   // Solo los gastos cuentan para el límite. El monto anterior de este movimiento no se cuenta.
-  if (actual.rows[0].tipo === 'gasto') {
+  if (actual.tipo === 'gasto') {
     const control = await controlarLimite(req.usuario.id, fecha, monto, id);
     if (!control.ok) {
       return res.status(422).json({ error: control.error });
     }
   }
 
+  const montoDecimal = new Prisma.Decimal(monto);
+
   // La restricción vive en el WHERE: si está pagado, el monto debe ser el mismo
-  const resultado = await pool.query(
-    `UPDATE movimientos
-     SET concepto = $3, monto = $4, fecha = $5, categoria = COALESCE($6, categoria)
-     WHERE id = $1 AND usuario_id = $2
-       AND (estado = 'pendiente' OR monto = $4)
-     RETURNING ${COLUMNAS_MOVIMIENTO}`,
-    [id, req.usuario.id, concepto, monto, fecha, categoria]
-  );
+  const resultado = await prisma.movimiento.updateMany({
+    where: {
+      id,
+      usuarioId: req.usuario.id,
+      OR: [{ estado: 'pendiente' }, { monto: montoDecimal }],
+    },
+    data: {
+      concepto,
+      monto: montoDecimal,
+      fecha: textoAFecha(fecha),
+      ...(categoria !== null ? { categoria } : {}),
+    },
+  });
 
   // Como el movimiento existe, no actualizar significa: pagado con otro monto
-  if (resultado.rows.length === 0) {
+  if (resultado.count === 0) {
     return res.status(409).json({
       error: 'Un movimiento pagado no permite modificar su monto.',
     });
   }
 
-  res.json({ movimiento: resultado.rows[0] });
+  const guardado = await prisma.movimiento.findUnique({ where: { id } });
+  res.json({ movimiento: formatearMovimiento(guardado) });
 });
 
 // Eliminar
@@ -371,11 +400,10 @@ app.delete('/movimientos/:id', exigirSesion, async (req, res) => {
     return res.status(400).json({ error: 'Movimiento inválido' });
   }
 
-  const resultado = await pool.query(
-    'DELETE FROM movimientos WHERE id = $1 AND usuario_id = $2 RETURNING id',
-    [id, req.usuario.id]
-  );
-  if (resultado.rows.length === 0) {
+  const resultado = await prisma.movimiento.deleteMany({
+    where: { id, usuarioId: req.usuario.id },
+  });
+  if (resultado.count === 0) {
     return res.status(404).json({ error: 'Movimiento no encontrado' });
   }
   res.json({ mensaje: 'Movimiento eliminado' });
@@ -394,22 +422,29 @@ function primerDiaDelMes(mes) {
 
 // null si la persona no definió límite para ese mes
 async function leerLimite(usuarioId, mes) {
-  const resultado = await pool.query(
-    'SELECT monto::float8 AS monto FROM limites_mensuales WHERE usuario_id = $1 AND mes = $2',
-    [usuarioId, mes]
-  );
-  return resultado.rows.length === 0 ? null : resultado.rows[0].monto;
+  const limite = await prisma.limiteMensual.findUnique({
+    where: { usuarioId_mes: { usuarioId, mes: textoAFecha(mes) } },
+  });
+  return limite === null ? null : Number(limite.monto);
 }
 
 // Solo los movimientos de tipo gasto cuentan. idExcluido: el que se está editando
 async function gastadoDelMes(usuarioId, mes, idExcluido = 0) {
-  const resultado = await pool.query(
-    `SELECT COALESCE(SUM(monto), 0)::float8 AS gastado FROM movimientos
-     WHERE usuario_id = $1 AND id <> $3 AND tipo = 'gasto'
-       AND fecha >= $2::date AND fecha < $2::date + INTERVAL '1 month'`,
-    [usuarioId, mes, idExcluido]
-  );
-  return resultado.rows[0].gastado;
+  const desde = textoAFecha(mes);
+  const hasta = new Date(desde);
+  hasta.setUTCMonth(hasta.getUTCMonth() + 1);
+
+  const resultado = await prisma.movimiento.aggregate({
+    _sum: { monto: true },
+    where: {
+      usuarioId,
+      id: { not: idExcluido },
+      tipo: 'gasto',
+      fecha: { gte: desde, lt: hasta },
+    },
+  });
+
+  return resultado._sum.monto === null ? 0 : Number(resultado._sum.monto);
 }
 
 // Antes de guardar un gasto: ¿entra en el límite del mes de su fecha?
@@ -448,28 +483,32 @@ app.put('/limite', exigirSesion, async (req, res) => {
     return res.status(400).json({ error: contraGastado.error });
   }
 
+  const mesFecha = textoAFecha(mes);
+  const montoDecimal = new Prisma.Decimal(Number(monto));
+
   // El límite y su evento viajan en la misma transacción (Tarea 4)
-  const cliente = await pool.connect();
-  try {
-    await cliente.query('BEGIN');
-    await cliente.query(
-      `INSERT INTO limites_mensuales (usuario_id, mes, monto) VALUES ($1, $2, $3)
-       ON CONFLICT (usuario_id, mes) DO UPDATE SET monto = EXCLUDED.monto, actualizado_en = NOW()`,
-      [req.usuario.id, mes, Number(monto)]
-    );
-    await registrarEvento(cliente, {
+  await prisma.$transaction(async (tx) => {
+    await tx.limiteMensual.upsert({
+      where: { usuarioId_mes: { usuarioId: req.usuario.id, mes: mesFecha } },
+      create: {
+        usuarioId: req.usuario.id,
+        mes: mesFecha,
+        monto: montoDecimal,
+      },
+      update: {
+        monto: montoDecimal,
+        actualizadoEn: new Date(),
+      },
+    });
+
+    await registrarEvento(tx, {
       usuarioId: req.usuario.id,
       tipo: 'limite_definido',
-      monto: Number(monto),
+      monto: montoDecimal,
       descripcion: `Límite del mes ${mes.slice(0, 7)}`,
     });
-    await cliente.query('COMMIT');
-  } catch (e) {
-    await cliente.query('ROLLBACK');
-    throw e;
-  } finally {
-    cliente.release();
-  }
+  });
+
   res.json({ mes: mes.slice(0, 7), ...calcularResumen({ limite: Number(monto), gastado }) });
 });
 
@@ -480,14 +519,22 @@ app.get('/historial', exigirSesion, async (req, res) => {
     return res.status(400).json({ error: 'Filtro inválido' });
   }
 
-  const resultado = await pool.query(
-    `SELECT id, tipo, movimiento_id, monto::float8 AS monto, descripcion, creado_en
-     FROM eventos WHERE usuario_id = $1
-     ORDER BY creado_en DESC LIMIT 50`,
-    [req.usuario.id]
-  );
+  const filas = await prisma.evento.findMany({
+    where: { usuarioId: req.usuario.id },
+    orderBy: { creadoEn: 'desc' },
+    take: 50,
+  });
 
-  const grupos = armarHistorial(resultado.rows, filtro, new Date());
+  const eventos = filas.map((evento) => ({
+    id: evento.id,
+    tipo: evento.tipo,
+    movimiento_id: evento.movimientoId,
+    monto: evento.monto === null ? null : Number(evento.monto),
+    descripcion: evento.descripcion,
+    creado_en: evento.creadoEn,
+  }));
+
+  const grupos = armarHistorial(eventos, filtro, new Date());
   res.json({ grupos });
 });
 

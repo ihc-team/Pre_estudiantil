@@ -28,15 +28,13 @@ App Flutter  →  API (servidor/)  →  PostgreSQL
 
 ### 1. Base de datos
 
-En pgAdmin (o `psql`) crea la base y las tablas:
+La API usa **Prisma** como ORM. El esquema vive en `servidor/prisma/schema.prisma` y la única migración (`servidor/prisma/migrations/`) crea todas las tablas, relaciones, índices y restricciones de una vez.
+
+Crea la base (si usas Docker, `docker compose -f servidor/docker-compose.dev.yml up -d` ya la crea):
 
 ```sql
 CREATE DATABASE presupuesto_estudiantil;
 ```
-
-Conéctate a esa base y ejecuta el contenido de `base_datos/esquema.sql`.
-
-Si tu base se creó antes, no la borres: aplicá los `base_datos/cambios/00N_*.sql` que te falten (001 límite, 002 límites mensuales, 003 tipo y categoría, **004 eventos para el historial**).
 
 ### 2. Servidor (API)
 
@@ -45,16 +43,18 @@ cd servidor
 copy .env.example .env
 ```
 
-Abre `servidor/.env` y escribe tu contraseña de PostgreSQL en `DB_PASSWORD`. Luego:
+Abre `servidor/.env` y ajusta `DATABASE_URL` (usuario, contraseña, puerto y nombre de la base). Luego:
 
 ```powershell
 npm install
-node semilla.js
-node servidor.js
+npm run prisma:deploy
+npm run semilla
+npm start
 ```
 
-- `node semilla.js` carga el usuario de prueba (ver más abajo).
-- `node servidor.js` deja la API en `http://localhost:3000`. Déjala corriendo.
+- `npm run prisma:deploy` aplica la migración. En desarrollo también puedes usar `npm run prisma:migrate`.
+- `npm run semilla` carga el usuario de prueba (ver más abajo).
+- `npm start` deja la API en `http://localhost:3000`. Déjala corriendo.
 - Comprobación: abrir `http://localhost:3000/ping` debe mostrar `{"mensaje":"Servidor funcionando"}`.
 
 ### 3. App Flutter
