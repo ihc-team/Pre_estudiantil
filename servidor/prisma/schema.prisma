@@ -1,0 +1,95 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id             Int      @id @default(autoincrement())
+  nombre         String   @db.VarChar(100)
+  correo         String   @unique @db.VarChar(150)
+  contrasenaHash String   @map("contrasena_hash") @db.VarChar(255)
+  creadoEn       DateTime @default(now()) @map("creado_en") @db.Timestamp(6)
+
+  sesiones       Sesion[]
+  recuperaciones Recuperacion[]
+  movimientos    Movimiento[]
+  limites        LimiteMensual[]
+  eventos        Evento[]
+
+  @@map("usuarios")
+}
+
+model Sesion {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique @db.VarChar(255)
+  usuarioId Int      @map("usuario_id")
+  creadoEn  DateTime @default(now()) @map("creado_en") @db.Timestamp(6)
+  expiraEn  DateTime @map("expira_en") @db.Timestamp(6)
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@map("sesiones")
+}
+
+model Recuperacion {
+  id        Int      @id @default(autoincrement())
+  usuarioId Int      @map("usuario_id")
+  codigo    String   @db.Char(6)
+  creadoEn  DateTime @default(now()) @map("creado_en") @db.Timestamp(6)
+  expiraEn  DateTime @map("expira_en") @db.Timestamp(6)
+  usado     Boolean  @default(false)
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@map("recuperaciones")
+}
+
+model Movimiento {
+  id        Int      @id @default(autoincrement())
+  usuarioId Int      @map("usuario_id")
+  concepto  String   @db.VarChar(150)
+  monto     Decimal  @db.Decimal(12, 2)
+  fecha     DateTime @db.Date
+  tipo      String   @default("gasto") @db.VarChar(10)
+  categoria String   @default("otros") @db.VarChar(20)
+  estado    String   @default("pendiente") @db.VarChar(10)
+  creadoEn  DateTime @default(now()) @map("creado_en") @db.Timestamp(6)
+
+  usuario Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  eventos Evento[]
+
+  @@map("movimientos")
+}
+
+model LimiteMensual {
+  id            Int      @id @default(autoincrement())
+  usuarioId     Int      @map("usuario_id")
+  mes           DateTime @db.Date
+  monto         Decimal  @db.Decimal(10, 2)
+  actualizadoEn DateTime @default(now()) @map("actualizado_en") @db.Timestamp(6)
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@unique([usuarioId, mes])
+  @@map("limites_mensuales")
+}
+
+model Evento {
+  id           Int      @id @default(autoincrement())
+  usuarioId    Int      @map("usuario_id")
+  tipo         String   @db.VarChar(30)
+  movimientoId Int?     @map("movimiento_id")
+  monto        Decimal? @db.Decimal(12, 2)
+  descripcion  String?  @db.VarChar(200)
+  creadoEn     DateTime @default(now()) @map("creado_en") @db.Timestamp(6)
+
+  usuario    Usuario     @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  movimiento Movimiento? @relation(fields: [movimientoId], references: [id], onDelete: SetNull)
+
+  @@index([usuarioId, creadoEn(sort: Desc)], map: "idx_eventos_usuario_fecha")
+  @@map("eventos")
+}

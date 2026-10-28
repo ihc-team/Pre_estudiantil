@@ -40,7 +40,7 @@
 
 **Servidor (`servidor/`)**
 - `servidor.js`: rutas de la API y verificación de sesión (`exigirSesion`)
-- `conexion.js`: conexión a PostgreSQL
+- `conexion.js`: cliente de Prisma (ORM) para PostgreSQL
 - `semilla.js`: datos iniciales
 - `.env.example`: variables necesarias
 
