@@ -1,18 +1,25 @@
 const bcrypt = require('bcryptjs');
-const pool = require('./conexion');
+const prisma = require('./conexion');
 
 async function sembrar() {
   const hash = await bcrypt.hash('123456', 10);
 
-  await pool.query(
-    `INSERT INTO usuarios (nombre, correo, contrasena_hash)
-     VALUES ($1, $2, $3)
-     ON CONFLICT (correo) DO UPDATE SET contrasena_hash = EXCLUDED.contrasena_hash`,
-    ['Usuario Prueba', 'prueba@correo.com', hash]
-  );
+  await prisma.usuario.upsert({
+    where: { correo: 'prueba@correo.com' },
+    update: { contrasenaHash: hash },
+    create: {
+      nombre: 'Usuario Prueba',
+      correo: 'prueba@correo.com',
+      contrasenaHash: hash,
+    },
+  });
 
   console.log('Semilla cargada: prueba@correo.com / 123456');
-  await pool.end();
 }
 
-sembrar();
+sembrar()
+  .catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+  })
+  .finally(() => prisma.$disconnect());
