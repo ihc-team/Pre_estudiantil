@@ -1,0 +1,35 @@
+name: pre_estudiantil 
+
+services:
+  # ---------- PostgreSQL ----------
+  pre_estudiantil-db:
+    image: postgres:16-alpine
+    container_name: pre_estudiantil_db_dev
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_HOST_AUTH_METHOD: trust 
+    ports:
+      - "${DB_PORT}:5432"
+    volumes:
+      - pre_estudiantil_db_dev_data:/var/lib/postgresql/data
+    networks:
+      - pre_estudiantil-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  pre_estudiantil_db_dev_data:
+
+networks:
+  pre_estudiantil-net:
+    # nombre propio para no chocar con el despliegue de producción
+    name: pre_estudiantil-net-dev
+    driver: bridge

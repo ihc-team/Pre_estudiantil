@@ -14,5 +14,6 @@ class Colores {
 
 class Servidor {
   // 10.0.2.2 = el localhost de tu PC visto desde el emulador de Android
-  static const String urlBase = 'http://10.0.2.2:3000';
+  // static const String urlBase = 'http://10.0.2.2:3000';
+  static const String urlBase = 'http://localhost:3000';
 }
