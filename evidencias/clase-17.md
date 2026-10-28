@@ -1,5 +1,7 @@
 ﻿# Clase 17 — Código ajeno y refactoring
 
+En ./pre_estudiantil.mp4 esta la prueba de que se corrio el proyecto con éxito.
+
 > **Principio de la clase:** Primero entender. Después cambiar.
 
 ---
@@ -192,3 +194,11 @@ El análisis a continuación identifica los puntos de extensión del código exi
 **Zona:** método `_guardar()` en `lib/pantallas/pantalla_nuevo_movimiento.dart`.
 
 Actualmente `_guardar()` valida campos, construye el aviso de límite y llama al servicio, todo en un solo método. Se podría extraer la validación a un método privado `_validarCampos() → bool` que aplique todos los `setState` de error de una vez y retorne `true/false`, dejando `_guardar()` únicamente con la decisión de si continuar y la llamada al servicio. El cambio estaría completamente contenido en `lib/pantallas/pantalla_nuevo_movimiento.dart` y facilitaría agregar nuevas validaciones sin mezclarlas con el código de red.
+
+
+### Anexos Capturas de pantalla
+
+![image1](./image1.png)
+![image2](./image2.png)
+![image3](./image3.png)
+![image4](./image4.png)
