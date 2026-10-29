@@ -54,3 +54,7 @@ servidor/node_modules/
 .claude/
 
 .ignore/**
+
+
+# Apuntes local
+docs1/.agents/

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../configuracion/constantes.dart';
 import '../configuracion/rutas.dart';
 import '../modelos/limite.dart';
@@ -8,6 +9,7 @@ import '../servicios/servicio_movimientos.dart';
 import '../widgets/boton_pildora.dart';
 import '../widgets/campo_texto.dart';
 import '../widgets/mensajes.dart';
+import '../modelos/presupuesto_categoria.dart';
 
 class PantallaLimite extends StatefulWidget {
   const PantallaLimite({super.key});
@@ -23,6 +25,9 @@ class _PantallaLimiteState extends State<PantallaLimite> {
   ResumenLimite? _resumen;
   // Lo que devolvió el servidor al guardar; mientras exista se muestra la confirmación
   ResumenLimite? _guardado;
+
+  // tarea 5 presupuesto
+  List<PresupuestoCategoria> _presupuestosCategorias = [];
 
   @override
   void initState() {
@@ -40,14 +45,19 @@ class _PantallaLimiteState extends State<PantallaLimite> {
     Navigator.pushNamedAndRemoveUntil(context, Rutas.login, (ruta) => false);
   }
 
-  // Al entrar se pide el límite a la base: así se ve lo guardado aunque se cierre la app
+  // Al entrar se pide el limite a la base, asi se ve lo guardado aunque se cierre la app
   Future<void> _cargarLimite() async {
     try {
       final resumen = await ServicioLimite.leer();
+      final categorias =
+          await ServicioLimite.leerPorCategoria(); // <-- Nueva llamada
       if (!mounted) return;
       setState(() {
         _resumen = resumen;
-        if (resumen.tieneLimite) _limite.text = resumen.limite!.toStringAsFixed(2);
+        _presupuestosCategorias = categorias; // <-- Guardamos la lista
+        if (resumen.tieneLimite) {
+          _limite.text = resumen.limite!.toStringAsFixed(2);
+        }
       });
     } on SesionExpirada {
       if (!mounted) return;
@@ -55,6 +65,53 @@ class _PantallaLimiteState extends State<PantallaLimite> {
     } on ErrorAcceso catch (e) {
       if (!mounted) return;
       mostrarMensaje(context, e.mensaje, esError: true);
+    }
+  }
+
+  Future<void> _editarPresupuesto(PresupuestoCategoria item) async {
+    final controlador = TextEditingController(
+      text: item.limite != null ? item.limite!.toStringAsFixed(2) : '',
+    );
+
+    final guardado = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Presupuesto para ${item.categoria.toUpperCase()}'),
+        content: TextField(
+          controller: controlador,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          decoration: const InputDecoration(
+            labelText: 'Monto (Bs)',
+            hintText: 'Ej.: 200',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              try {
+                await ServicioLimite.guardarPorCategoria(
+                  categoria: item.categoria,
+                  montoTexto: controlador.text,
+                );
+                if (ctx.mounted) Navigator.pop(ctx, true);
+              } catch (e) {
+                if (mounted) {
+                  mostrarMensaje(context, e.toString(), esError: true);
+                }
+              }
+            },
+            child: const Text('Guardar'),
+          ),
+        ],
+      ),
+    );
+
+    if (guardado == true) {
+      _cargarLimite(); // Recargamos para actualizar las tarjetas y consumos
     }
   }
 
@@ -98,7 +155,10 @@ class _PantallaLimiteState extends State<PantallaLimite> {
           Expanded(
             child: Text(
               textoConfirmacionLimite(r),
-              style: const TextStyle(fontWeight: FontWeight.w600, color: Colores.verdeOscuro),
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                color: Colores.verdeOscuro,
+              ),
             ),
           ),
         ],
@@ -129,7 +189,10 @@ class _PantallaLimiteState extends State<PantallaLimite> {
               SizedBox(width: 8),
               Text(
                 'Cómo funciona',
-                style: TextStyle(fontWeight: FontWeight.w700, color: Colores.azulOscuro),
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  color: Colores.azulOscuro,
+                ),
               ),
             ],
           ),
@@ -179,7 +242,10 @@ class _PantallaLimiteState extends State<PantallaLimite> {
                 const SizedBox(height: 8),
                 Text(
                   'Este mes ya gastaste ${formatearBs(_resumen!.gastado)}.',
-                  style: const TextStyle(fontSize: 16, color: Colores.grisAzulado),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: Colores.grisAzulado,
+                  ),
                 ),
               ],
               const SizedBox(height: 16),
@@ -190,7 +256,9 @@ class _PantallaLimiteState extends State<PantallaLimite> {
                 etiqueta: 'Límite del mes (Bs)',
                 icono: Icons.savings_outlined,
                 pista: 'Ej.: 500',
-                tipoTeclado: const TextInputType.numberWithOptions(decimal: true),
+                tipoTeclado: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
                 error: _errorLimite,
                 // Si cambia el monto, se oculta la confirmación y vuelve "Guardar límite"
                 alCambiar: (_) => setState(() {
@@ -203,27 +271,95 @@ class _PantallaLimiteState extends State<PantallaLimite> {
                 height: 58,
                 child: _cargando
                     ? const Center(
-                  child: CircularProgressIndicator(color: Colores.verdeOscuro),
-                )
+                        child: CircularProgressIndicator(
+                          color: Colores.verdeOscuro,
+                        ),
+                      )
                     : _guardado != null
                     ? BotonPildora(
-                  // H4.4: check a la izquierda y la flecha de la derecha,
-                  // igual que los demás botones (antes: ← y → opuestas)
-                  texto: 'Listo',
-                  icono: Icons.check,
-                  alPresionar: () => Navigator.pop(context, true),
-                )
+                        // H4.4: check a la izquierda y la flecha de la derecha,
+                        // igual que los demás botones (antes: ← y → opuestas)
+                        texto: 'Listo',
+                        icono: Icons.check,
+                        alPresionar: () => Navigator.pop(context, true),
+                      )
                     : BotonPildora(
-                  texto: 'Guardar límite',
-                  icono: Icons.check,
-                  alPresionar: _guardar,
-                ),
+                        texto: 'Guardar límite',
+                        icono: Icons.check,
+                        alPresionar: _guardar,
+                      ),
               ),
               if (_guardado != null) ...[
                 const SizedBox(height: 16),
                 _confirmacion(_guardado!),
               ],
               const SizedBox(height: 24),
+
+              const SizedBox(height: 32),
+              const Divider(),
+              const SizedBox(height: 16),
+              const Text(
+                'Presupuesto por categorias',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colores.azulOscuro,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Toca una categoria para cambiar o definir su presupuesto:',
+                style: TextStyle(fontSize: 14, color: Colores.grisAzulado),
+              ),
+              const SizedBox(height: 16),
+
+              // Las tarjetas de cada categoría
+              for (final item in _presupuestosCategorias)
+                Card(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: ListTile(
+                    title: Text(
+                      item.categoria.toUpperCase(),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 4),
+                        Text('Gastado: ${formatearBs(item.gastado)}'),
+                        if (item.tieneLimite) ...[
+                          Text('El Presupuesto: ${formatearBs(item.limite!)}'),
+                          Text(
+                            item.excedido
+                                ? 'Se excedio por ${formatearBs(-item.restante!)}!'
+                                : 'Quedan: ${formatearBs(item.restante!)}',
+                            style: TextStyle(
+                              color: item.excedido
+                                  ? Colors.red
+                                  : (item.enAviso
+                                        ? Colors.orange
+                                        : Colors.green),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ] else
+                          const Text(
+                            'Sin presupuesto definido',
+                            style: TextStyle(
+                              fontStyle: FontStyle.italic,
+                              color: Colors.grey,
+                            ),
+                          ),
+                      ],
+                    ),
+                    trailing: const Icon(Icons.edit_outlined),
+                    onTap: () => _editarPresupuesto(item),
+                  ),
+                ),
+              const SizedBox(height: 32),
             ],
           ),
         ),
