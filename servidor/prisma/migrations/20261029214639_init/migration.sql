@@ -44,11 +44,7 @@ CREATE TABLE "movimientos" (
     "estado" VARCHAR(10) NOT NULL DEFAULT 'pendiente',
     "creado_en" TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "movimientos_pkey" PRIMARY KEY ("id"),
-    CONSTRAINT "movimientos_monto_check" CHECK ("monto" > 0),
-    CONSTRAINT "movimientos_tipo_check" CHECK ("tipo" IN ('ingreso', 'gasto')),
-    CONSTRAINT "movimientos_categoria_check" CHECK ("categoria" IN ('comida', 'transporte', 'estudio', 'otros')),
-    CONSTRAINT "movimientos_estado_check" CHECK ("estado" IN ('pendiente', 'pagado'))
+    CONSTRAINT "movimientos_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -59,8 +55,19 @@ CREATE TABLE "limites_mensuales" (
     "monto" DECIMAL(10,2) NOT NULL,
     "actualizado_en" TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "limites_mensuales_pkey" PRIMARY KEY ("id"),
-    CONSTRAINT "limites_mensuales_monto_check" CHECK ("monto" > 0)
+    CONSTRAINT "limites_mensuales_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "presupuestos_por_categoria" (
+    "id" SERIAL NOT NULL,
+    "usuario_id" INTEGER NOT NULL,
+    "mes" DATE NOT NULL,
+    "categoria" VARCHAR(20) NOT NULL,
+    "monto" DECIMAL(10,2) NOT NULL,
+    "actualizado_en" TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "presupuestos_por_categoria_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -73,9 +80,7 @@ CREATE TABLE "eventos" (
     "descripcion" VARCHAR(200),
     "creado_en" TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "eventos_pkey" PRIMARY KEY ("id"),
-    CONSTRAINT "eventos_tipo_check" CHECK ("tipo" IN ('gasto_registrado', 'ingreso_registrado',
-                                     'movimiento_pagado', 'limite_definido'))
+    CONSTRAINT "eventos_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -88,22 +93,28 @@ CREATE UNIQUE INDEX "sesiones_token_key" ON "sesiones"("token");
 CREATE UNIQUE INDEX "limites_mensuales_usuario_id_mes_key" ON "limites_mensuales"("usuario_id", "mes");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "presupuestos_por_categoria_usuario_id_mes_categoria_key" ON "presupuestos_por_categoria"("usuario_id", "mes", "categoria");
+
+-- CreateIndex
 CREATE INDEX "idx_eventos_usuario_fecha" ON "eventos"("usuario_id", "creado_en" DESC);
 
 -- AddForeignKey
-ALTER TABLE "sesiones" ADD CONSTRAINT "sesiones_usuario_id_fkey" FOREIGN KEY ("usuario_id") REFERENCES "usuarios"("id") ON DELETE CASCADE;
+ALTER TABLE "sesiones" ADD CONSTRAINT "sesiones_usuario_id_fkey" FOREIGN KEY ("usuario_id") REFERENCES "usuarios"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "recuperaciones" ADD CONSTRAINT "recuperaciones_usuario_id_fkey" FOREIGN KEY ("usuario_id") REFERENCES "usuarios"("id") ON DELETE CASCADE;
+ALTER TABLE "recuperaciones" ADD CONSTRAINT "recuperaciones_usuario_id_fkey" FOREIGN KEY ("usuario_id") REFERENCES "usuarios"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "movimientos" ADD CONSTRAINT "movimientos_usuario_id_fkey" FOREIGN KEY ("usuario_id") REFERENCES "usuarios"("id") ON DELETE CASCADE;
+ALTER TABLE "movimientos" ADD CONSTRAINT "movimientos_usuario_id_fkey" FOREIGN KEY ("usuario_id") REFERENCES "usuarios"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "limites_mensuales" ADD CONSTRAINT "limites_mensuales_usuario_id_fkey" FOREIGN KEY ("usuario_id") REFERENCES "usuarios"("id") ON DELETE CASCADE;
+ALTER TABLE "limites_mensuales" ADD CONSTRAINT "limites_mensuales_usuario_id_fkey" FOREIGN KEY ("usuario_id") REFERENCES "usuarios"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "eventos" ADD CONSTRAINT "eventos_usuario_id_fkey" FOREIGN KEY ("usuario_id") REFERENCES "usuarios"("id") ON DELETE CASCADE;
+ALTER TABLE "presupuestos_por_categoria" ADD CONSTRAINT "presupuestos_por_categoria_usuario_id_fkey" FOREIGN KEY ("usuario_id") REFERENCES "usuarios"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "eventos" ADD CONSTRAINT "eventos_movimiento_id_fkey" FOREIGN KEY ("movimiento_id") REFERENCES "movimientos"("id") ON DELETE SET NULL;
+ALTER TABLE "eventos" ADD CONSTRAINT "eventos_usuario_id_fkey" FOREIGN KEY ("usuario_id") REFERENCES "usuarios"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "eventos" ADD CONSTRAINT "eventos_movimiento_id_fkey" FOREIGN KEY ("movimiento_id") REFERENCES "movimientos"("id") ON DELETE SET NULL ON UPDATE CASCADE;
