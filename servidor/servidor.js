@@ -512,6 +512,113 @@ app.put('/limite', exigirSesion, async (req, res) => {
   res.json({ mes: mes.slice(0, 7), ...calcularResumen({ limite: Number(monto), gastado }) });
 });
 
+app.put('/presupuestos-categoria', exigirSesion, async (req, res) => {
+  const { mes: mesPedido, categoria, monto } = req.body || {};
+
+  // valida el mes
+  const mes = primerDiaDelMes(mesPedido);
+  if (!mes) {
+    return res.status(400).json({ error: 'Mes inválido' });
+  }
+
+  // valida la categoria
+  if (!CATEGORIAS.includes(categoria)) {
+    return res.status(400).json({ error: 'Categoría inválida' });
+  }
+
+  // valida el monto
+  const validacion = validarMontoLimite(monto);
+  if (!validacion.ok) {
+    return res.status(400).json({ error: validacion.error });
+  }
+
+  // se guarda en prisma
+  const mesFecha = textoAFecha(mes);
+  const montoDecimal = new Prisma.Decimal(Number(monto));
+
+  const guardado = await prisma.presupuestoCategoria.upsert({
+    where: {
+      usuarioId_mes_categoria: {
+        usuarioId: req.usuario.id,
+        mes: mesFecha,
+        categoria,
+      },
+    },
+    create: {
+      usuarioId: req.usuario.id,
+      mes: mesFecha,
+      categoria,
+      monto: montoDecimal,
+    },
+    update: {
+      monto: montoDecimal,
+      actualizadoEn: new Date(),
+    },
+  });
+
+  res.json({
+    mes: mes.slice(0, 7),
+    categoria: guardado.categoria,
+    monto: Number(guardado.monto),
+  });
+});
+
+const redondear = (n) => Math.round(n * 100) / 100;
+
+app.get('/presupuestos-categoria', exigirSesion, async (req, res) => {
+
+  const mes = primerDiaDelMes(req.query.mes);
+  if (!mes) {
+    return res.status(400).json({ error: 'Mes inválido' });
+  }
+
+  // rango mes
+  const desde = textoAFecha(mes);
+  const hasta = new Date(desde);
+  hasta.setUTCMonth(hasta.getUTCMonth() + 1);
+
+  // los presupuestos y gastos reales
+  const [presupuestos, gastosPorCat] = await Promise.all([
+    prisma.presupuestoCategoria.findMany({
+      where: { usuarioId: req.usuario.id, mes: desde },
+    }),
+    prisma.movimiento.groupBy({
+      by: ['categoria'],
+      _sum: { monto: true },
+      where: {
+        usuarioId: req.usuario.id,
+        tipo: 'gasto',
+        fecha: { gte: desde, lt: hasta },
+      },
+    }),
+  ]);
+
+  // indices acomodados por categoria
+  const limitePorCat = new Map(
+    presupuestos.map((p) => [p.categoria, Number(p.monto)])
+  );
+  const gastadoPorCat = new Map(
+    gastosPorCat.map((g) => [g.categoria, Number(g._sum.monto ?? 0)])
+  );
+
+  // una fila por categoria, tenga o no presupuesto
+  const categorias = CATEGORIAS.map((categoria) => {
+    const limite = limitePorCat.has(categoria) ? limitePorCat.get(categoria) : null;
+    const gastado = redondear(gastadoPorCat.get(categoria) ?? 0);
+
+    return {
+      categoria,
+      limite,
+      gastado,
+      restante: limite !== null ? redondear(limite - gastado) : null,
+      proporcion: limite !== null ? redondear(gastado / limite) : null,
+    };
+  });
+
+  res.json({ mes: mes.slice(0, 7), categorias });
+});
+
+
 // ---------- Historial de actividad (Tarea 4) ----------
 app.get('/historial', exigirSesion, async (req, res) => {
   const filtro = String(req.query.tipo || 'todos');
@@ -546,3 +653,5 @@ app.use((err, req, res, next) => {
 
 const puerto = process.env.PUERTO || 3000;
 app.listen(puerto, () => console.log(`Servidor en http://localhost:${puerto}`));
+
+
