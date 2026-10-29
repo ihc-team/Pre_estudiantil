@@ -19,6 +19,7 @@ model Usuario {
   movimientos    Movimiento[]
   limites        LimiteMensual[]
   eventos        Evento[]
+  presupuestos   PresupuestoCategoria[]
 
   @@map("usuarios")
 }
@@ -76,6 +77,20 @@ model LimiteMensual {
 
   @@unique([usuarioId, mes])
   @@map("limites_mensuales")
+}
+
+model PresupuestoCategoria {
+  id            Int      @id @default(autoincrement())
+  usuarioId     Int      @map("usuario_id")
+  mes           DateTime @db.Date
+  categoria     String   @db.VarChar(20)
+  monto         Decimal  @db.Decimal(10, 2)
+  actualizadoEn DateTime @default(now()) @map("actualizado_en") @db.Timestamp(6)
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@unique([usuarioId, mes, categoria])
+  @@map("presupuestos_por_categoria")
 }
 
 model Evento {
