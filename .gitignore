@@ -57,4 +57,5 @@ servidor/node_modules/
 
 
 # Apuntes local
-docs1/.agents/
+docs1/
+.agents/
