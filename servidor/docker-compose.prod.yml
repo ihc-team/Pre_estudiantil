@@ -26,7 +26,7 @@ services:
   pre_estudiantil-api:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.prod
     container_name: pre_estudiantil_api_prod
     restart: unless-stopped
     environment:

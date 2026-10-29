@@ -10,7 +10,7 @@ npm install
 
 ## Variables de entorno
 
-Copia `.env.example` a `.env` y ajusta `DATABASE_URL` con tus datos de PostgreSQL:
+Copia `.env.example` a `.env` y ajusta con tus datos de PostgreSQL:
 
 ```shell
 cp .env.example .env

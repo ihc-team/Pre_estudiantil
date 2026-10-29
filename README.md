@@ -32,18 +32,10 @@ La API usa **Prisma** como ORM. El esquema vive en `servidor/prisma/schema.prism
 
 Crea la base (si usas Docker, `docker compose -f servidor/docker-compose.dev.yml up -d` ya la crea):
 
-```sql
-CREATE DATABASE presupuesto_estudiantil;
+```sql CREATE DATABASE presupuesto_estudiantil; ``` ### 2. Servidor (API) ```powershell cd servidor copy .env.example .env
 ```
 
-### 2. Servidor (API)
-
-```powershell
-cd servidor
-copy .env.example .env
-```
-
-Abre `servidor/.env` y ajusta `DATABASE_URL` (usuario, contraseña, puerto y nombre de la base). Luego:
+Abre `servidor/.env` y ajusta (usuario, contraseña, puerto y nombre de la base). Luego:
 
 ```powershell
 npm install
