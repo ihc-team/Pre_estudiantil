@@ -1,5 +1,7 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
+
 import '../configuracion/constantes.dart';
 import '../configuracion/rutas.dart';
 import '../modelos/filtros.dart';
@@ -12,6 +14,7 @@ import '../widgets/campo_texto.dart';
 import '../widgets/hoja_filtros.dart';
 import '../widgets/mensajes.dart';
 import 'pantalla_nuevo_movimiento.dart';
+import '../modelos/presupuesto_categoria.dart';
 
 class PantallaMovimientos extends StatefulWidget {
   const PantallaMovimientos({super.key});
@@ -26,6 +29,7 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
   TotalesMovimientos? _totales;
   bool _cargandoLista = true;
   ResumenLimite? _resumen;
+  List<PresupuestoCategoria> _categorias = [];
 
   // Búsqueda y filtros (#7)
   FiltrosMovimientos _filtros = FiltrosMovimientos.vacio;
@@ -74,11 +78,13 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
     try {
       final listado = await ServicioMovimientos.listar(_filtros);
       final resumen = await ServicioLimite.leer();
+      final categorias = await ServicioLimite.leerPorCategoria();
       if (!mounted || numero != _peticion) return;
       setState(() {
         _movimientos = listado.movimientos;
         _totales = listado.totales;
         _resumen = resumen;
+        _categorias = categorias;
         _cargandoLista = false;
       });
     } on SesionExpirada {
@@ -175,12 +181,17 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(contexto, false),
-            child: const Text('Cancelar', style: TextStyle(color: Colores.verdeOscuro)),
+            child: const Text(
+              'Cancelar',
+              style: TextStyle(color: Colores.verdeOscuro),
+            ),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(contexto, true),
             style: FilledButton.styleFrom(
-              backgroundColor: esPeligro ? Colors.red.shade700 : Colores.verdeOscuro,
+              backgroundColor: esPeligro
+                  ? Colors.red.shade700
+                  : Colores.verdeOscuro,
             ),
             child: Text(textoConfirmar),
           ),
@@ -223,7 +234,8 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
   Future<void> _eliminar(Movimiento movimiento) async {
     final confirmado = await _pedirConfirmacion(
       titulo: 'Eliminar movimiento',
-      mensaje: '¿Deseas eliminar "${movimiento.concepto}"? Esta acción no se puede deshacer.',
+      mensaje:
+          '¿Deseas eliminar "${movimiento.concepto}"? Esta acción no se puede deshacer.',
       textoConfirmar: 'Eliminar',
       esPeligro: true,
     );
@@ -247,8 +259,7 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
   Future<void> _cerrarSesion() async {
     final confirmado = await _pedirConfirmacion(
       titulo: '¿Cerrar sesión?',
-      mensaje:
-          '¿Deseas cerrar tu sesión? Tendrás que iniciar sesión de nuevo para entrar.',
+      mensaje: '¿Deseas cerrar tu sesión? Tendrás que iniciar sesión de nuevo para entrar.',
       textoConfirmar: 'Cerrar sesión',
     );
     if (!confirmado || !mounted) return;
@@ -262,7 +273,9 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
     // Mientras se verifica la sesión no se muestra contenido privado
     if (_nombre == null) {
       return const Scaffold(
-        body: Center(child: CircularProgressIndicator(color: Colores.verdeOscuro)),
+        body: Center(
+          child: CircularProgressIndicator(color: Colores.verdeOscuro),
+        ),
       );
     }
 
@@ -340,7 +353,9 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
 
   // Buscador por concepto + botón de filtros (con la cantidad de filtros aplicados)
   Widget _barraBusqueda() {
-    final cantidad = _filtros.activos.where((a) => a.clave != ClaveFiltro.buscar).length;
+    final cantidad = _filtros.activos
+        .where((a) => a.clave != ClaveFiltro.buscar)
+        .length;
 
     return Row(
       children: [
@@ -394,7 +409,10 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
           if (activos.length > 1)
             TextButton(
               onPressed: _quitarTodos,
-              child: const Text('Quitar todos', style: TextStyle(color: Colores.verdeOscuro)),
+              child: const Text(
+                'Quitar todos',
+                style: TextStyle(color: Colores.verdeOscuro),
+              ),
             ),
         ],
       ),
@@ -414,15 +432,24 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
         children: [
           Text(
             '${t.cantidad} ${t.cantidad == 1 ? 'movimiento' : 'movimientos'}',
-            style: const TextStyle(fontWeight: FontWeight.w700, color: Colores.azulOscuro),
+            style: const TextStyle(
+              fontWeight: FontWeight.w700,
+              color: Colores.azulOscuro,
+            ),
           ),
           Text(
             'Ingresos ${formatearBs(t.ingresos)}',
-            style: const TextStyle(fontWeight: FontWeight.w600, color: Colores.verdeOscuro),
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              color: Colores.verdeOscuro,
+            ),
           ),
           Text(
             'Gastos ${formatearBs(t.gastos)}',
-            style: const TextStyle(fontWeight: FontWeight.w600, color: Colores.rojo),
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              color: Colores.rojo,
+            ),
           ),
         ],
       ),
@@ -445,7 +472,11 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
               const Text(
                 'Ningún movimiento coincide\ncon la búsqueda o los filtros.',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16, color: Colores.grisAzulado, height: 1.5),
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colores.grisAzulado,
+                  height: 1.5,
+                ),
               ),
               TextButton(
                 onPressed: _quitarTodos,
@@ -462,7 +493,11 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
         child: Text(
           'Aún no tienes movimientos.\nCrea el primero con el botón de abajo.',
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 16, color: Colores.grisAzulado, height: 1.5),
+          style: TextStyle(
+            fontSize: 16,
+            color: Colores.grisAzulado,
+            height: 1.5,
+          ),
         ),
       );
     }
@@ -483,7 +518,9 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: r.enAviso ? Colores.aviso : Colores.verdeClaro),
+        border: Border.all(
+          color: r.enAviso ? Colores.aviso : Colores.verdeClaro,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -513,6 +550,19 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
                 : 'Te pasaste por ${formatearBs(-restante)}',
             style: TextStyle(fontWeight: FontWeight.w600, color: color),
           ),
+
+          // Lanza aviso por categoria
+          for (final cat in _categorias.where((c) => c.excedido)) ...[
+            const SizedBox(height: 6),
+            Text(
+              'Atencion: Te pasaste en ${cat.categoria} por ${formatearBs(-cat.restante!)}',
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: Colors.red,
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -563,7 +613,10 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: pagado ? Colores.verdeClaro : const Color(0xFFFFE9C7),
                   borderRadius: BorderRadius.circular(20),
@@ -572,14 +625,19 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
                   m.estadoTexto,
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
-                    color: pagado ? Colores.verdeOscuro : const Color(0xFF8A5A00),
+                    color: pagado
+                        ? Colores.verdeOscuro
+                        : const Color(0xFF8A5A00),
                   ),
                 ),
               ),
               const Spacer(),
               IconButton(
                 tooltip: 'Editar',
-                icon: const Icon(Icons.edit_outlined, color: Colores.verdeOscuro),
+                icon: const Icon(
+                  Icons.edit_outlined,
+                  color: Colores.verdeOscuro,
+                ),
                 onPressed: () => _editar(m),
               ),
               IconButton(
