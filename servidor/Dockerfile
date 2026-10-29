@@ -16,7 +16,7 @@ COPY package*.json ./
 COPY prisma ./prisma
 COPY *.js ./
 
-RUN DATABASE_URL="postgresql://build:build@localhost:5432/build" npx prisma generate
+RUN npx prisma generate
 
 RUN chown -R node:node /app
 USER node
