@@ -14,6 +14,8 @@ services:
       POSTGRES_HOST_AUTH_METHOD: trust
     volumes:
       - pre_estudiantil_db_prod_data:/var/lib/postgresql/data
+    ports:
+      - ${DB_PORT}:5432
     networks:
       - pre_estudiantil-net
     healthcheck:
@@ -32,8 +34,8 @@ services:
     environment:
       NODE_ENV: production
       SERVER_PORT: 3000
-      DB_HOST: pre_estudiantil-db
-      DB_PORT: 5432
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT} 
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: ${DB_NAME}
