@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const { Prisma } = require('@prisma/client');
 const prisma = require('./conexion');
+const { puerto } = require('./env');
 
 const {
   validarMontoLimite,
@@ -651,7 +652,6 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Error del servidor' });
 });
 
-const puerto = process.env.PUERTO || 3000;
 app.listen(puerto, () => console.log(`Servidor en http://localhost:${puerto}`));
 
 

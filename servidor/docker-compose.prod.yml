@@ -22,17 +22,21 @@ services:
       timeout: 3s
       retries: 20
 
-  # ---------- API Express + Prisma (sin puerto público) ----------
+  # ---------- API Express + Prisma (sin SERVER_PORT público) ----------
   pre_estudiantil-api:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.prod
     container_name: pre_estudiantil_api_prod
     restart: unless-stopped
     environment:
       NODE_ENV: production
-      PUERTO: 3000
-      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@pre_estudiantil-db:5432/${DB_NAME}?schema=public
+      SERVER_PORT: 3000
+      DB_HOST: pre_estudiantil-db
+      DB_PORT: 5432
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
     depends_on:
       pre_estudiantil-db:
         condition: service_healthy

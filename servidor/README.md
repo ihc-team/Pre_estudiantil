@@ -10,7 +10,7 @@ npm install
 
 ## Variables de entorno
 
-Copia `.env.example` a `.env` y ajusta `DATABASE_URL` con tus datos de PostgreSQL:
+Copia `.env.example` a `.env` y ajusta con tus datos de PostgreSQL:
 
 ```shell
 cp .env.example .env
@@ -21,14 +21,23 @@ cp .env.example .env
 El esquema está en `prisma/schema.prisma` y la migración inicial en `prisma/migrations/`.
 
 ```shell
+# Cuestionario para configurar prisma por primera vez
+npx prisma init
+
 # Aplicar la migración (producción/despliegue)
-npm run prisma:deploy
+npx prisma migrate deploy 
 
-# Crear/aplicar migraciones en desarrollo
-npm run prisma:migrate
+# Crear/aplicar migraciones en desarrollo y generar los tipos en @client
+npx prisma migrate dev
 
-# Regenerar el cliente después de cambiar el esquema
-npm run prisma:generate
+# Regenerar los tipos en @client
+npx prisma generate 
+
+# Generar las migraciones 
+npx prisma migrate dev --name init  
+
+# Para resetear la base de datos y aplicar las migraciones
+npx prisma migrate reset
 ```
 
 ## Datos de prueba
