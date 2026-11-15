@@ -49,6 +49,14 @@ abstract class AppColors {
 }
 
 abstract class AppTypography {
+  /// Figma: `typography/display/hero` (54px, bold, h: 56px, ls: -1) - Logo de marca
+  static const TextStyle displayHero = TextStyle(
+    fontSize: 54,
+    height: 56 / 54,
+    fontWeight: FontWeight.w700,
+    letterSpacing: -1,
+  );
+
   static const TextStyle displaySmall = TextStyle(
     fontSize: 32,
     height: 40 / 32,
@@ -102,6 +110,15 @@ abstract class AppTypography {
     fontSize: 12,
     height: 16 / 12,
     fontWeight: FontWeight.w600,
+    color: AppColors.textSecondary,
+  );
+
+  /// Figma: `typography/label/tracking` (12px, semibold, ls: 4) - Eslogan en mayúsculas
+  static const TextStyle labelTracking = TextStyle(
+    fontSize: 12,
+    height: 16 / 12,
+    fontWeight: FontWeight.w600,
+    letterSpacing: 4,
     color: AppColors.textSecondary,
   );
 }
