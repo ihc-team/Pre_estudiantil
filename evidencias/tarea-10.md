@@ -71,9 +71,12 @@ Siguiendo el principio de privacidad por defecto (cero montos, conceptos ni corr
    * Resultado: **71 tests pasados exitosamente** (`All tests passed!`).
 
 2. **Frontend (Flutter):**
-   * Suite en `test/mis_datos_test.dart`:
+   * Suite unitaria en `test/mis_datos_test.dart`:
      * Prueba de descarga de datos y trazabilidad en analítica sin datos personales.
      * Prueba de inicio y confirmación de eliminación de cuenta.
      * Prueba de recorrido completo simulando el cierre de sesión forzoso y bloqueo de credenciales tras la eliminación.
-   * Resultado: **Todas las pruebas pasaron en verde**.
+   * Suite de Integración / E2E en `integration_test/mis_datos_test.dart` (ejecutado en emulador Android Pixel 4a):
+     * **Flujo completo real:** Limpieza inicial de sesión, registro de nuevo usuario, login con botón "Entrar", verificación de "Mis movimientos", acceso al menú de opciones, navegación a "Mis datos", descarga del JSON al portapapeles (disparando evento `datos_descargados`), scroll al botón de salida honesta, confirmación simétrica ingresando contraseña en el diálogo (disparando `cuenta_eliminacion_iniciada` y `cuenta_eliminada`), redirección limpia a la pantalla de login, y comprobación de bloqueo/error al intentar reingresar con la cuenta eliminada.
+     * **Robustez en interfaz y ciclo de vida:** Corrección del diálogo de confirmación encapsulado en su propio `StatefulWidget` (`_DialogoConfirmarEliminar`) para garantizar que el `TextEditingController` viva únicamente durante el ciclo de vida del widget y no se destruya prematuramente durante las animaciones de salida de Flutter. Adicionalmente, se incorporó `SingleChildScrollView` dentro del diálogo para prevenir desbordamientos (*RenderFlex overflow*) cuando el teclado virtual del dispositivo móvil se despliega.
+   * Resultado: **Todas las pruebas unitarias y de integración pasaron en verde (`All tests passed!`)**.
 
