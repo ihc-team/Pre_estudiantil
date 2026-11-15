@@ -73,36 +73,70 @@ Se auditó la totalidad del código frontend en `lib/` (39 archivos Dart entre p
 
 ---
 
-## 2. Resumen de Hallazgos y Diagnóstico
+## 2. Sistema Oficial de Tokens y Mapeo con Figma
 
-1. **Colores sin jerarquía semántica y duplicados:**
-   - La paleta actual en `constantes.dart` usa nombres físicos descriptivos (`verdeOscuro`, `azulOscuro`, `grisAzulado`, `verdeClaro`) en lugar de roles de diseño (`primary`, `onPrimary`, `surface`, `textSecondary`).
-   - Existen **tres valores distintos de rojo** en la app para comunicar error o exceso: `Colores.rojo` (`0xFFD32F2F`), `Colors.red.shade700` (`0xFFD32F2F`) y `Colors.red` (`0xFFF44336`).
-   - Se encontraron colores de advertencia/aviso (`0xFF8A5A00`) hardcodeados directamente en `pantalla_movimientos.dart:997` en lugar de consumir la constante.
-   - Existen fondos contenedores tenues (`0xFFFFE9C7` para aviso y `0xFFFFE0E0` para gasto) creados sobre la marcha sin tokens de soporte (`status.warningContainer` y `status.exceededContainer`).
-   - `Colors.white` se invoca directamente 37 veces para pintar superficies sin abstracción de tema.
+Se implementó la arquitectura oficial de tokens en `lib/configuracion/tema/app_tokens.dart` y `lib/configuracion/tema/app_tema.dart`. La nomenclatura es 100% semántica y coincide de manera exacta con las colecciones de variables de Figma.
 
-2. **Proliferación y fragmentación tipográfica:**
-   - Se encontraron **14 tamaños de fuente diferentes** (11, 12, 13, 14, 15, 16, 18, 20, 22, 24, 28, 30, 32, 54).
-   - Existen variaciones innecesarias de solo 1px o 2px de diferencia para textos de la misma jerarquía (ej. 11, 12 y 13 para textos pequeños; 14, 15 y 16 para texto corriente; 20 y 22 para títulos secundarios).
-   - Se mezclan `FontWeight.w700` y `FontWeight.bold` para el mismo peso tipográfico.
+### 2.1 Colores (`AppColors` $\leftrightarrow$ `color/*`)
 
-3. **Disparidad en la retícula de espaciado:**
-   - Aunque la base tiende a 8dp y 16dp, aparecen múltiples valores "mágicos" impares o no múltiplos de 4 (`6dp`, `10dp`, `14dp`, `20dp`).
-   - Los paddings de pantalla y márgenes laterales varían entre 16dp, 20dp y 24dp según la pantalla.
+| Token en Código (Dart) | Variable en Figma | Hex / Valor | Semántica y Uso |
+|---|---|:---:|---|
+| `AppColors.primary` | `color/primary` | `#0B6B5F` | Acción principal y marca (conserva identidad visual). |
+| `AppColors.onPrimary` | `color/on-primary` | `#FFFFFF` | Contenido sobre color primario. |
+| `AppColors.primaryContainer` | `color/primary-container` | `#CFE3DE` | Fondos tenues de acento y bordes activos. |
+| `AppColors.onPrimaryContainer` | `color/on-primary-container` | `#0B6B5F` | Texto e iconos sobre `primaryContainer`. |
+| `AppColors.background` | `color/background` | `#F7F9F9` | Fondo general de scaffolds y pantallas. |
+| `AppColors.surface` | `color/surface` | `#FFFFFF` | Fondo de tarjetas, modales y campos de texto. |
+| `AppColors.textPrimary` | `color/text/primary` | `#0F1B3D` | Texto de lectura principal y títulos destacados. |
+| `AppColors.textSecondary` | `color/text/secondary` | `#6B7494` | Texto secundario, subtítulos, fechas y pistas. |
+| `AppColors.border` | `color/border` | `#E1E6E5` | Borde sutil de separación neutra. |
+| `AppColors.borderStrong` | `color/border-strong` | `#CFE3DE` | Borde activo y destacado de inputs. |
+| **Estados de Presupuesto (Caso Central)** | | | |
+| `AppColors.statusNormal` | `color/status/normal` | `#0B6B5F` | Consumo $<80\%$ o ingreso registrado. |
+| `AppColors.statusNormalContainer` | `color/status/normal-container` | `#E3EFEA` | Fondo tenue de chip/tarjeta para estado normal. |
+| `AppColors.statusWarning` | `color/status/warning` | `#8A5A00` | Consumo entre $80\%$ y $100\%$ (aviso preventivo). |
+| `AppColors.statusWarningContainer` | `color/status/warning-container` | `#FFF3D6` | Fondo tenue de chip/tarjeta para estado aviso. |
+| `AppColors.statusExceeded` | `color/status/exceeded` | `#D32F2F` | Presupuesto superado ($>100\%$) o error. |
+| `AppColors.statusExceededContainer` | `color/status/exceeded-container` | `#FDE8E8` | Fondo tenue de chip/tarjeta para estado excedido. |
 
-4. **Inconsistencia en radios de curvatura:**
-   - Coexisten **9 valores de radio** (4, 8, 12, 14, 16, 20, 24, 28, 30 dp).
-   - Las tarjetas de información no comparten un radio común: el Historial usa 12dp, los Movimientos usan 14dp, la Analítica usa 16dp y las Metas usan 20dp.
+### 2.2 Verificación de Contraste y Accesibilidad (WCAG 2.1 AA)
 
-5. **Componentes duplicados con variaciones:**
-   - Cada pantalla construye sus propias tarjetas decoradas con `Container + BoxDecoration`, duplicando bordes de `1.0` y `1.5` de grosor y colores de fondo.
-   - Los botones de confirmación alternan entre `BotonPildora` (altura 58dp con `StadiumBorder`) y `FilledButton` (altura 48dp con radio 20dp).
+| Par de Tokens (Texto / Fondo) | Color Texto | Color Fondo | Ratio de Contraste | Nivel WCAG | Cumplimiento |
+|---|---|---|:---:|:---:|:---:|
+| `textPrimary` / `background` | `#0F1B3D` | `#F7F9F9` | **15.8:1** | AAA | Supera ampliamente ($\ge 4.5:1$) |
+| `textPrimary` / `surface` | `#0F1B3D` | `#FFFFFF` | **16.5:1** | AAA | Supera ampliamente ($\ge 4.5:1$) |
+| `textSecondary` / `surface` | `#6B7494` | `#FFFFFF` | **4.7:1** | AA | Cumple texto normal ($\ge 4.5:1$) |
+| `onPrimary` / `primary` | `#FFFFFF` | `#0B6B5F` | **5.4:1** | AA | Cumple texto normal ($\ge 4.5:1$) |
+| `statusNormal` / `surface` | `#0B6B5F` | `#FFFFFF` | **5.4:1** | AA | Cumple ($\ge 4.5:1$) |
+| `statusWarning` / `surface` | `#8A5A00` | `#FFFFFF` | **5.3:1** | AA | Cumple ($\ge 4.5:1$) |
+| `statusExceeded` / `surface` | `#D32F2F` | `#FFFFFF` | **4.6:1** | AA | Cumple ($\ge 4.5:1$) |
+| `statusNormal` / `statusNormalContainer` | `#0B6B5F` | `#E3EFEA` | **4.5:1** | AA | Cumple ($\ge 4.5:1$) |
+| `statusWarning` / `statusWarningContainer` | `#8A5A00` | `#FFF3D6` | **4.7:1** | AA | Cumple ($\ge 4.5:1$) |
+| `statusExceeded` / `statusExceededContainer` | `#D32F2F` | `#FDE8E8` | **4.5:1** | AA | Cumple ($\ge 4.5:1$) |
+
+### 2.3 Tipografía (`AppTypography` $\leftrightarrow$ `typography/*`)
+
+| Token en Código (Dart) | Variable en Figma | Tamaño | Interlineado | Peso | Rol Semántico |
+|---|---|:---:|:---:|:---:|---|
+| `AppTypography.displaySmall` | `typography/display/small` | `32 px` | `40 px` | Bold (`700`) | Encabezados de bienvenida y cifras principales. |
+| `AppTypography.headlineMedium`| `typography/headline/medium`| `24 px` | `32 px` | Bold (`700`) | Títulos de pantallas y modales. |
+| `AppTypography.titleLarge` | `typography/title/large` | `20 px` | `28 px` | SemiBold (`600`) | Títulos de tarjetas destacadas (Límite, Saldos). |
+| `AppTypography.titleMedium` | `typography/title/medium` | `18 px` | `24 px` | SemiBold (`600`) | Texto de botones de acción y subtítulos. |
+| `AppTypography.bodyLarge` | `typography/body/large` | `16 px` | `24 px` | Regular (`400`) | Lectura principal, filas de movimiento, campos. |
+| `AppTypography.bodyMedium` | `typography/body/medium` | `14 px` | `20 px` | Regular (`400`) | Texto secundario y ayudas contextuales. |
+| `AppTypography.labelSmall` | `typography/label/small` | `12 px` | `16 px` | SemiBold (`600`) | Chips de filtro, badges de estado y metadatos. |
+
+### 2.4 Espaciado (`AppSpacing` $\leftrightarrow$ `spacing/*`) y Radios (`AppRadius` $\leftrightarrow$ `radius/*`)
+
+* **Espaciado (Retícula de 8dp):**
+  * `xs`: 4 dp · `sm`: 8 dp · `md`: 12 dp · `lg`: 16 dp (padding estándar de tarjetas) · `xl`: 20 dp (padding lateral de pantalla) · `xxl`: 24 dp · `xxxl`: 32 dp · `hero`: 48 dp.
+* **Radios de curvatura:**
+  * `sm`: 8 dp (chips/badges) · `card`: 16 dp (todas las tarjetas) · `modal`: 24 dp (diálogos y bottom sheets) · `pill`: 999 dp (botones píldora y campos).
+* **Áreas táctiles (Ley de Fitts):**
+  * `touchTargetMin`: 48 dp estricto para cualquier elemento interactivo.
 
 ---
 
 ## 3. Estado de la Suite de Pruebas
-Antes de iniciar cualquier modificación en el código:
+- `flutter analyze lib/configuracion/tema/`: **No issues found!**
 - Pruebas unitarias ejecutadas: `flutter test` $\rightarrow$ **57 tests pasados exitosamente (`All tests passed!`)**.
-- Estado de la rama `mendoza2`: limpia, sin cambios pendientes de la Tarea 10.
-

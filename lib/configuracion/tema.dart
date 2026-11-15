@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 
-import 'constantes.dart';
+import 'tema/app_tema.dart';
 
+/// Adaptador retrocompatible de TemaApp para el arranque de la app.
 class TemaApp {
-  static final ThemeData temaClaro = ThemeData(
-    colorScheme: ColorScheme.fromSeed(seedColor: Colores.verdeOscuro),
-    scaffoldBackgroundColor: Colores.fondo,
-    useMaterial3: true,
-  );
+  static ThemeData get temaClaro => AppTheme.lightTheme;
 }
