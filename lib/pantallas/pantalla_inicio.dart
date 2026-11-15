@@ -1,59 +1,63 @@
 import 'package:flutter/material.dart';
 
-import '../configuracion/constantes.dart';
-import '../widgets/fondo_decorativo.dart';
-import '../widgets/boton_pildora.dart';
 import '../configuracion/rutas.dart';
+import '../configuracion/tema/app_tokens.dart';
+import '../widgets/boton_pildora.dart';
+import '../widgets/fondo_decorativo.dart';
 
+/*
+Pantalla publica de bienvenida migrada al sistema de tokens (Clase 23)
+
+Cumple con:
+- Cero valores Color(0x...) ni Colors.xxx (usa AppColors)
+- Cero estilos de texto o fuentes sueltas (usa AppTypography)
+- Cero paddings o espacios con numeros magicos (usa AppSpacing)
+- Area tactil minima >= 48dp en botones de enlace (AppSizes.touchTargetMin)
+*/
 class PantallaInicio extends StatelessWidget {
   const PantallaInicio({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       body: Stack(
         children: [
           // Capa 1: curvas decorativas
           const Positioned.fill(child: FondoDecorativo()),
 
-          // Capa 2: contenido
+          // Capa 2: contenido accesible dirigido por tokens
           SafeArea(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxxl),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const Spacer(flex: 3),
                   _logo(),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.lg),
                   const Text(
                     'TU DINERO, TUS METAS',
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colores.grisAzulado,
-                      fontSize: 13,
-                      letterSpacing: 4,
-                      fontWeight: FontWeight.w500,
-                    ),
+                    style: AppTypography.labelTracking,
                   ),
-                  const SizedBox(height: 40),
-                  const Text(
+                  const SizedBox(height: AppSpacing.hero - AppSpacing.sm),
+                  Text(
                     'Organiza tus ingresos, gastos\ny mantén el control de tu presupuesto\ncomo estudiante universitario.',
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colores.grisAzulado,
-                      fontSize: 16,
+                    style: AppTypography.bodyLarge.copyWith(
+                      color: AppColors.textSecondary,
                       height: 1.5,
                     ),
                   ),
-                  const SizedBox(height: 48),
+                  const SizedBox(height: AppSpacing.hero),
                   BotonPildora(
                     texto: 'Iniciar sesión',
                     icono: Icons.person_outline,
                     alPresionar: () =>
                         Navigator.pushNamed(context, Rutas.login),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.lg),
                   BotonPildora(
                     texto: 'Registrarse',
                     icono: Icons.person_add_alt_outlined,
@@ -73,23 +77,19 @@ class PantallaInicio extends StatelessWidget {
     );
   }
 
-  // Logo: "Uni" en azul oscuro y "Budget" en verde
+  // Logo: "Uni" en azul oscuro (textPrimary) y "Budget" en verde (primary)
   Widget _logo() {
     return const Text.rich(
       TextSpan(
-        style: TextStyle(
-          fontSize: 54,
-          fontWeight: FontWeight.w800,
-          letterSpacing: -1,
-        ),
+        style: AppTypography.displayHero,
         children: [
           TextSpan(
             text: 'Uni',
-            style: TextStyle(color: Colores.azulOscuro),
+            style: TextStyle(color: AppColors.textPrimary),
           ),
           TextSpan(
             text: 'Budget',
-            style: TextStyle(color: Colores.verdeOscuro),
+            style: TextStyle(color: AppColors.primary),
           ),
         ],
       ),
@@ -99,11 +99,17 @@ class PantallaInicio extends StatelessWidget {
 
   Widget _enlaceOlvidaste(BuildContext context) {
     return TextButton.icon(
+      style: TextButton.styleFrom(
+        minimumSize: const Size(0, AppSizes.touchTargetMin),
+      ),
       onPressed: () => Navigator.pushNamed(context, Rutas.recuperar),
-      icon: const Icon(Icons.lock_outline, color: Colores.verdeOscuro),
-      label: const Text(
+      icon: const Icon(Icons.lock_outline, color: AppColors.primary),
+      label: Text(
         '¿Olvidaste tu contraseña?',
-        style: TextStyle(color: Colores.verdeOscuro, fontSize: 14),
+        style: AppTypography.bodyMedium.copyWith(
+          color: AppColors.primary,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }

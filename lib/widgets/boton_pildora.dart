@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../configuracion/constantes.dart';
+import 'app_button.dart';
 
+// Adaptador retrocompatible de [BotonPildora] conectado a [AppButton] del sistema de diseño
+// Mantiene la API original usada por las pantallas heredadas para evitar roturas
+// mientras delega toda la renderizacion a los tokens oficiales
 class BotonPildora extends StatelessWidget {
   final String texto;
   final IconData icono;
@@ -18,41 +21,12 @@ class BotonPildora extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Si es relleno: fondo verde y texto blanco. Si no: solo borde verde.
-    final Color colorContenido = esRelleno ? Colors.white : Colores.verdeOscuro;
-
-    return Material(
-      color: esRelleno ? Colores.verdeOscuro : Colors.transparent,
-      shape: StadiumBorder(
-        side: BorderSide(color: Colores.verdeOscuro, width: 1.5),
-      ),
-      child: InkWell(
-        customBorder: const StadiumBorder(),
-        onTap: alPresionar,
-        child: SizedBox(
-          height: 58,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Row(
-              children: [
-                Icon(icono, color: colorContenido),
-                Expanded(
-                  child: Text(
-                    texto,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: colorContenido,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                Icon(Icons.arrow_forward, color: colorContenido),
-              ],
-            ),
-          ),
-        ),
-      ),
+    return AppButton(
+      label: texto,
+      leadingIcon: icono,
+      onPressed: alPresionar,
+      variant: esRelleno ? AppButtonVariant.primary : AppButtonVariant.secondary,
+      size: AppButtonSize.large,
     );
   }
 }
