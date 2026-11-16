@@ -102,4 +102,45 @@ test('elimina la cuenta y todos sus datos', async () => {
     body: { correo, contrasena },
   });
   assert.equal(login.status, 401);
+
+  // Un token anterior ya no debe ser válido tras la eliminación
+  const exportarConTokenViejo = await pedir('GET', '/cuenta/exportar', { token });
+  assert.equal(exportarConTokenViejo.status, 401);
+});
+
+test('exporta los datos completos del usuario en JSON', async () => {
+  const correoExportar = `exportar-test-${Date.now()}@correo.com`;
+  const reg = await pedir('POST', '/registro', {
+    body: { nombre: 'Usuario Exportar', correo: correoExportar, contrasena },
+  });
+  assert.equal(reg.status, 201);
+
+  const log = await pedir('POST', '/login', {
+    body: { correo: correoExportar, contrasena },
+  });
+  const tokenExportar = log.datos.token;
+
+  await pedir('POST', '/movimientos', {
+    token: tokenExportar,
+    body: {
+      concepto: 'Gasto para exportar',
+      monto: 25.5,
+      fecha: new Date().toISOString().slice(0, 10),
+      tipo: 'gasto',
+      categoria: 'comida',
+    },
+  });
+
+  const exportado = await pedir('GET', '/cuenta/exportar', { token: tokenExportar });
+  assert.equal(exportado.status, 200);
+  assert.ok(exportado.datos.exportadoEn);
+  assert.equal(exportado.datos.usuario.correo, correoExportar);
+  assert.equal(exportado.datos.movimientos.length, 1);
+  assert.equal(exportado.datos.movimientos[0].concepto, 'Gasto para exportar');
+  assert.equal(exportado.datos.movimientos[0].monto, 25.5);
+  assert.ok(Array.isArray(exportado.datos.metas));
+  assert.ok(Array.isArray(exportado.datos.presupuestosCategorias));
+
+  // Limpiar
+  await prisma.usuario.deleteMany({ where: { correo: correoExportar } });
 });

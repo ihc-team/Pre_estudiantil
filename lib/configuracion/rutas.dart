@@ -7,6 +7,7 @@ import '../pantallas/pantalla_inicio.dart';
 import '../pantallas/pantalla_limite.dart';
 import '../pantallas/pantalla_login.dart';
 import '../pantallas/pantalla_metas.dart';
+import '../pantallas/pantalla_mis_datos.dart';
 import '../pantallas/pantalla_movimientos.dart';
 import '../pantallas/pantalla_nuevo_movimiento.dart';
 import '../pantallas/pantalla_recuperar.dart';
@@ -24,6 +25,7 @@ class Rutas {
   static const String historial = '/historial';
   static const String metas = '/metas';
   static const String analitica = '/analitica';
+  static const String misDatos = '/mis-datos';
 
   static final Map<String, WidgetBuilder> mapa = {
     arranque: (context) => const PantallaArranque(),
@@ -37,5 +39,6 @@ class Rutas {
     historial: (context) => const PantallaHistorial(),
     metas: (context) => const PantallaMetas(),
     analitica: (context) => const PantallaAnalitica(),
+    misDatos: (context) => const PantallaMisDatos(),
   };
 }

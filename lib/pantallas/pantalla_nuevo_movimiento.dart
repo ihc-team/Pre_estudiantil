@@ -410,31 +410,59 @@ class _PantallaNuevoMovimientoState extends State<PantallaNuevoMovimiento> {
           ],
         ),
         content: Text(
-          'Con este gasto vas a superar el límite de la categoría $categoriaTexto por $excesoTexto.\n\n¿Deseas continuar de todas formas?',
+          'Con este gasto superarás el límite de la categoría $categoriaTexto por $excesoTexto.\n\nPuedes regresar para ajustar el monto o confirmar si decides registrarlo de todas formas.',
           style: const TextStyle(
             color: Colores.grisAzulado,
             height: 1.4,
             fontSize: 15,
           ),
         ),
+        actionsPadding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(contexto, false),
-            child: const Text(
-              'Cancelar',
-              style: TextStyle(
-                color: Colores.verdeOscuro,
-                fontWeight: FontWeight.bold,
+          // El principio de simetria (Anti patron #2)
+          // Botones con el mismo peso visual, misma altura y sin textos que culpen.
+          Row(
+            children: [
+              Expanded(
+                child: SizedBox(
+                  height: 48,
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(contexto, false),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colores.azulOscuro,
+                      side: const BorderSide(color: Colores.grisAzulado),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                    child: const Text(
+                      'Seguir editando',
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ),
               ),
-            ),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(contexto, true),
-            style: FilledButton.styleFrom(
-              backgroundColor: Colores.rojo,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Guardar de todas formas'),
+              const SizedBox(width: 12),
+              Expanded(
+                child: SizedBox(
+                  height: 48,
+                  child: FilledButton(
+                    onPressed: () => Navigator.pop(contexto, true),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: Colores.verdeOscuro,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                    child: const Text(
+                      'Confirmar gasto',
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),

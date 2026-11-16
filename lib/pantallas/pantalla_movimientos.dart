@@ -173,6 +173,13 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
     await Navigator.pushNamed(context, Rutas.historial);
   }
 
+  Future<void> _abrirMisDatos() async {
+    final resultado = await Navigator.pushNamed(context, Rutas.misDatos);
+    if (resultado == 'solicitar_eliminar') {
+      unawaited(_eliminarCuenta());
+    }
+  }
+
   // Future<void> _abrirAnalitica() async {
   //   await Navigator.pushNamed(context, Rutas.analitica);
   // }
@@ -302,11 +309,16 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
   }
 
   Future<void> _eliminarCuenta() async {
+    // Analitica, se inicia la intencion de eliminar cuenta
+    AnaliticaServicio.track('cuenta_eliminacion_iniciada', {});
+
     final contrasena = await _pedirContrasenaEliminarCuenta();
     if (contrasena == null) return;
 
     try {
       await ServicioCuenta.eliminar(contrasena);
+      // Analiticam confirmacion exitosa de eliminacion
+      AnaliticaServicio.track('cuenta_eliminada', {});
       if (!mounted) return;
       Navigator.pushNamedAndRemoveUntil(context, Rutas.login, (ruta) => false);
     } on SesionExpirada {
@@ -318,74 +330,12 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
     }
   }
 
-  Future<String?> _pedirContrasenaEliminarCuenta() async {
-    final controlador = TextEditingController();
-    String? error;
-
-    final resultado = await showDialog<String>(
+  Future<String?> _pedirContrasenaEliminarCuenta() {
+    return showDialog<String>(
       context: context,
-      builder: (contexto) => StatefulBuilder(
-        builder: (contexto, setStateDialogo) => AlertDialog(
-          backgroundColor: Colors.white,
-          surfaceTintColor: Colors.transparent,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(28),
-          ),
-          title: const Text(
-            'Eliminar cuenta',
-            style: TextStyle(color: Colores.azulOscuro),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Esta acción elimina tu cuenta y todos tus movimientos, metas y presupuestos. No se puede deshacer.',
-                style: TextStyle(color: Colores.grisAzulado, height: 1.4),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: controlador,
-                obscureText: true,
-                autofocus: true,
-                decoration: InputDecoration(
-                  labelText: 'Contraseña',
-                  errorText: error,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(contexto),
-              child: const Text(
-                'Cancelar',
-                style: TextStyle(color: Colores.verdeOscuro),
-              ),
-            ),
-            FilledButton(
-              style: FilledButton.styleFrom(
-                backgroundColor: Colors.red.shade700,
-              ),
-              onPressed: () {
-                if (controlador.text.isEmpty) {
-                  setStateDialogo(() => error = 'Escribe tu contraseña');
-                  return;
-                }
-                Navigator.pop(contexto, controlador.text);
-              },
-              child: const Text('Eliminar cuenta'),
-            ),
-          ],
-        ),
-      ),
+      barrierDismissible: false,
+      builder: (contexto) => const _DialogoConfirmarEliminar(),
     );
-
-    controlador.dispose();
-    return resultado;
   }
 
   @override
@@ -449,14 +399,37 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
             tooltip: 'Cuenta',
             icon: const Icon(Icons.more_vert, color: Colores.verdeOscuro),
             onSelected: (valor) {
-              if (valor == 'eliminar') unawaited(_eliminarCuenta());
+              if (valor == 'datos') {
+                unawaited(_abrirMisDatos());
+              } else if (valor == 'eliminar') {
+                unawaited(_eliminarCuenta());
+              }
             },
             itemBuilder: (contexto) => const [
               PopupMenuItem(
+                value: 'datos',
+                child: Row(
+                  children: [
+                    Icon(Icons.folder_shared_outlined, size: 20, color: Colores.azulOscuro),
+                    SizedBox(width: 10),
+                    Text(
+                      'Mis datos',
+                      style: TextStyle(color: Colores.azulOscuro, fontWeight: FontWeight.w600),
+                    ),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
                 value: 'eliminar',
-                child: Text(
-                  'Eliminar cuenta',
-                  style: TextStyle(color: Colors.red),
+                child: Row(
+                  children: [
+                    Icon(Icons.delete_outline, size: 20, color: Colores.grisAzulado),
+                    SizedBox(width: 10),
+                    Text(
+                      'Eliminar cuenta',
+                      style: TextStyle(color: Colores.azulOscuro),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -1054,6 +1027,153 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
             ),
         ],
       ),
+    );
+  }
+}
+
+class _DialogoConfirmarEliminar extends StatefulWidget {
+  const _DialogoConfirmarEliminar();
+
+  @override
+  State<_DialogoConfirmarEliminar> createState() => _DialogoConfirmarEliminarState();
+}
+
+class _DialogoConfirmarEliminarState extends State<_DialogoConfirmarEliminar> {
+  late final TextEditingController _controlador;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _controlador = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _controlador.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: Colors.white,
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(24),
+      ),
+      title: Row(
+        children: const [
+          Icon(Icons.info_outline, color: Colores.azulOscuro, size: 24),
+          SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Eliminar cuenta y datos',
+              style: TextStyle(
+                color: Colores.azulOscuro,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Esta acción eliminará de forma permanente tu cuenta, todos tus movimientos, metas y presupuestos.',
+              style: TextStyle(color: Colores.azulOscuro, height: 1.4, fontSize: 14),
+            ),
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colores.verdeClaro.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: const [
+                  Icon(Icons.download_rounded, color: Colores.verdeOscuro, size: 20),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Te recomendamos descargar una copia de tus datos antes de continuar.',
+                      style: TextStyle(color: Colores.verdeOscuro, fontSize: 12, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Para confirmar, escribe tu contraseña:',
+              style: TextStyle(color: Colores.grisAzulado, fontSize: 13),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _controlador,
+              obscureText: true,
+              autofocus: true,
+              decoration: InputDecoration(
+                labelText: 'Contraseña actual',
+                errorText: _error,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      actionsPadding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+      actions: [
+        Row(
+          children: [
+            Expanded(
+              child: SizedBox(
+                height: 48,
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colores.azulOscuro,
+                    side: const BorderSide(color: Colores.grisAzulado),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancelar', style: TextStyle(fontWeight: FontWeight.w600)),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: SizedBox(
+                height: 48,
+                child: FilledButton(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: Colores.azulOscuro,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  onPressed: () {
+                    if (_controlador.text.isEmpty) {
+                      setState(() => _error = 'Escribe tu contraseña');
+                      return;
+                    }
+                    Navigator.pop(context, _controlador.text);
+                  },
+                  child: const Text('Eliminar', style: TextStyle(fontWeight: FontWeight.w600)),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

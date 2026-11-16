@@ -248,6 +248,89 @@ app.delete('/cuenta', exigirSesion, async (req, res) => {
   res.json({ mensaje: 'Cuenta eliminada' });
 });
 
+// ---------- Exportar datos del usuario (JSON) ----------
+app.get('/cuenta/exportar', exigirSesion, async (req, res) => {
+  const usuarioId = req.usuario.id;
+
+  const [usuario, movimientos, metas, presupuestos, limites] = await Promise.all([
+    prisma.usuario.findUnique({
+      where: { id: usuarioId },
+      select: { nombre: true, correo: true, creadoEn: true },
+    }),
+    prisma.movimiento.findMany({
+      where: { usuarioId },
+      orderBy: { fecha: 'desc' },
+      select: {
+        id: true,
+        concepto: true,
+        monto: true,
+        fecha: true,
+        tipo: true,
+        categoria: true,
+        estado: true,
+      },
+    }),
+    prisma.metaAhorro.findMany({
+      where: { usuarioId },
+      orderBy: { creadoEn: 'asc' },
+      include: {
+        movimientos: {
+          orderBy: { creadoEn: 'desc' },
+          select: { id: true, tipo: true, monto: true, creadoEn: true },
+        },
+      },
+    }),
+    prisma.presupuestoCategoria.findMany({
+      where: { usuarioId },
+      orderBy: { mes: 'desc' },
+      select: { id: true, mes: true, categoria: true, monto: true },
+    }),
+    prisma.limiteMensual.findMany({
+      where: { usuarioId },
+      orderBy: { mes: 'desc' },
+      select: { id: true, mes: true, monto: true },
+    }),
+  ]);
+
+  const datosExportados = {
+    exportadoEn: new Date().toISOString(),
+    usuario: {
+      nombre: usuario?.nombre || '',
+      correo: usuario?.correo || '',
+      miembroDesde: usuario?.creadoEn?.toISOString().slice(0, 10) || '',
+    },
+    movimientos: movimientos.map((m) => ({
+      ...m,
+      monto: Number(m.monto),
+      fecha: fechaATexto(m.fecha),
+    })),
+    metas: metas.map((meta) => ({
+      id: meta.id,
+      nombre: meta.nombre,
+      montoObjetivo: Number(meta.montoObjetivo),
+      montoReservado: Number(meta.montoReservado),
+      fechaObjetivo: fechaATexto(meta.fechaObjetivo),
+      movimientos: meta.movimientos.map((mv) => ({
+        ...mv,
+        monto: Number(mv.monto),
+        fecha: mv.creadoEn.toISOString(),
+      })),
+    })),
+    presupuestosCategorias: presupuestos.map((p) => ({
+      ...p,
+      monto: Number(p.monto),
+      mes: fechaATexto(p.mes).slice(0, 7),
+    })),
+    limitesMensuales: limites.map((l) => ({
+      ...l,
+      monto: Number(l.monto),
+      mes: fechaATexto(l.mes).slice(0, 7),
+    })),
+  };
+
+  res.json(datosExportados);
+});
+
 // ---------- Recuperación: genera un código de 6 dígitos ----------
 app.post('/recuperar', async (req, res) => {
   const usuario = await prisma.usuario.findUnique({

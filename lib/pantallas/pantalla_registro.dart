@@ -104,10 +104,14 @@ class _PantallaRegistroState extends State<PantallaRegistro> {
               ),
               const SizedBox(height: 8),
               const Text(
-                'Empieza a organizar tu dinero.',
-                style: TextStyle(fontSize: 16, color: Colores.grisAzulado),
+                'Tus datos solo se usarán para gestionar tu presupuesto personal y no se compartirán con terceros.',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colores.grisAzulado,
+                  height: 1.4,
+                ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 24),
               CampoTexto(
                 controlador: _nombre,
                 etiqueta: 'Nombre',
