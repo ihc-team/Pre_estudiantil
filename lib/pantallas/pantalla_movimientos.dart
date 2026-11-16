@@ -20,6 +20,8 @@ import 'pantalla_nuevo_movimiento.dart';
 import '../modelos/presupuesto_categoria.dart';
 import '../servicios/analitica.dart';
 
+import '../configuracion/constantes.dart';
+
 enum _VistaMovimientos { todos, pendientes, pagados, recurrentes }
 
 class PantallaMovimientos extends StatefulWidget {
@@ -410,11 +412,18 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
                 value: 'datos',
                 child: Row(
                   children: [
-                    Icon(Icons.folder_shared_outlined, size: 20, color: Colores.azulOscuro),
+                    Icon(
+                      Icons.folder_shared_outlined,
+                      size: 20,
+                      color: Colores.azulOscuro,
+                    ),
                     SizedBox(width: 10),
                     Text(
                       'Mis datos',
-                      style: TextStyle(color: Colores.azulOscuro, fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        color: Colores.azulOscuro,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ],
                 ),
@@ -423,7 +432,11 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
                 value: 'eliminar',
                 child: Row(
                   children: [
-                    Icon(Icons.delete_outline, size: 20, color: Colores.grisAzulado),
+                    Icon(
+                      Icons.delete_outline,
+                      size: 20,
+                      color: Colores.grisAzulado,
+                    ),
                     SizedBox(width: 10),
                     Text(
                       'Eliminar cuenta',
@@ -1035,7 +1048,8 @@ class _DialogoConfirmarEliminar extends StatefulWidget {
   const _DialogoConfirmarEliminar();
 
   @override
-  State<_DialogoConfirmarEliminar> createState() => _DialogoConfirmarEliminarState();
+  State<_DialogoConfirmarEliminar> createState() =>
+      _DialogoConfirmarEliminarState();
 }
 
 class _DialogoConfirmarEliminarState extends State<_DialogoConfirmarEliminar> {
@@ -1059,9 +1073,7 @@ class _DialogoConfirmarEliminarState extends State<_DialogoConfirmarEliminar> {
     return AlertDialog(
       backgroundColor: Colors.white,
       surfaceTintColor: Colors.transparent,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(24),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       title: Row(
         children: const [
           Icon(Icons.info_outline, color: Colores.azulOscuro, size: 24),
@@ -1085,7 +1097,11 @@ class _DialogoConfirmarEliminarState extends State<_DialogoConfirmarEliminar> {
           children: [
             const Text(
               'Esta acción eliminará de forma permanente tu cuenta, todos tus movimientos, metas y presupuestos.',
-              style: TextStyle(color: Colores.azulOscuro, height: 1.4, fontSize: 14),
+              style: TextStyle(
+                color: Colores.azulOscuro,
+                height: 1.4,
+                fontSize: 14,
+              ),
             ),
             const SizedBox(height: 10),
             Container(
@@ -1096,12 +1112,20 @@ class _DialogoConfirmarEliminarState extends State<_DialogoConfirmarEliminar> {
               ),
               child: Row(
                 children: const [
-                  Icon(Icons.download_rounded, color: Colores.verdeOscuro, size: 20),
+                  Icon(
+                    Icons.download_rounded,
+                    color: Colores.verdeOscuro,
+                    size: 20,
+                  ),
                   SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       'Te recomendamos descargar una copia de tus datos antes de continuar.',
-                      style: TextStyle(color: Colores.verdeOscuro, fontSize: 12, fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        color: Colores.verdeOscuro,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ],
@@ -1138,13 +1162,19 @@ class _DialogoConfirmarEliminarState extends State<_DialogoConfirmarEliminar> {
                 child: OutlinedButton(
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Colores.azulOscuro,
-                    side: const BorderSide(color: Colores.grisAzulado),
+                    side: BorderSide.none,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
                   ),
                   onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancelar', style: TextStyle(fontWeight: FontWeight.w600)),
+                  child: const Text(
+                    'Cancelar',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: Colores.verdeOscuro,
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -1154,7 +1184,7 @@ class _DialogoConfirmarEliminarState extends State<_DialogoConfirmarEliminar> {
                 height: 48,
                 child: FilledButton(
                   style: FilledButton.styleFrom(
-                    backgroundColor: Colores.azulOscuro,
+                    backgroundColor: Colores.verdeOscuro,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
@@ -1167,7 +1197,10 @@ class _DialogoConfirmarEliminarState extends State<_DialogoConfirmarEliminar> {
                     }
                     Navigator.pop(context, _controlador.text);
                   },
-                  child: const Text('Eliminar', style: TextStyle(fontWeight: FontWeight.w600)),
+                  child: const Text(
+                    'Eliminar',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
                 ),
               ),
             ),
