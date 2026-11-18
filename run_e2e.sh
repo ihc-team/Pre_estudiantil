@@ -32,9 +32,7 @@ DEVICE=${DEVICE:-emulator-5554}
 echo "Emulador detectado: $DEVICE"
 
 cleanup_emulator() {
-  adb -s "$DEVICE" emu kill >/dev/null 2>&1 || true
-  pkill -9 -f "qemu-system.*-avd test" >/dev/null 2>&1 || true
-  pkill -9 -f "emulator.*-avd test" >/dev/null 2>&1 || true
+  nohup sh -c 'sleep 15; pkill -9 -f "qemu-system.*-avd test" >/dev/null 2>&1 || true; pkill -9 -f "emulator.*-avd test" >/dev/null 2>&1 || true' >/dev/null 2>&1 &
 }
 trap cleanup_emulator EXIT
 
@@ -47,4 +45,3 @@ for test_file in integration_test/*_test.dart; do
   echo "=== Ejecutando $test_file ==="
   flutter test "$test_file" -d "$DEVICE" --reporter expanded
 done
-
