@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../configuracion/constantes.dart';
 import '../configuracion/rutas.dart';
+import '../configuracion/tema/app_tokens.dart';
 import '../servicios/servicio_acceso.dart';
-import '../widgets/boton_pildora.dart';
+import '../widgets/app_button.dart';
 
 class PantallaArranque extends StatefulWidget {
   const PantallaArranque({super.key});
@@ -44,46 +44,50 @@ class _PantallaArranqueState extends State<PantallaArranque> {
   Widget build(BuildContext context) {
     if (!_sinConexion) {
       return const Scaffold(
+        backgroundColor: AppColors.background,
         body: Center(
-          child: CircularProgressIndicator(color: Colores.verdeOscuro),
+          child: CircularProgressIndicator(color: AppColors.primary),
         ),
       );
     }
 
     return Scaffold(
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxxl),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Icon(Icons.wifi_off, size: 56, color: Colores.grisAzulado),
-              const SizedBox(height: 16),
-              const Text(
+              const Icon(
+                Icons.wifi_off,
+                size: 56,
+                color: AppColors.textSecondary,
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              Text(
                 'No se pudo conectar con el servidor',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 24,
+                style: AppTypography.headlineMedium.copyWith(
                   fontWeight: FontWeight.w800,
-                  color: Colores.azulOscuro,
+                  color: AppColors.textPrimary,
                 ),
               ),
-              const SizedBox(height: 8),
-              const Text(
+              const SizedBox(height: AppSpacing.sm),
+              Text(
                 'Tu sesión sigue guardada. Revisa tu conexión e intenta de nuevo.',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colores.grisAzulado,
+                style: AppTypography.bodyLarge.copyWith(
+                  color: AppColors.textSecondary,
                   height: 1.4,
                 ),
               ),
-              const SizedBox(height: 32),
-              BotonPildora(
-                texto: 'Reintentar',
-                icono: Icons.refresh,
-                alPresionar: _decidirDestino,
+              const SizedBox(height: AppSpacing.xxxl),
+              AppButton.primary(
+                label: 'Reintentar',
+                leadingIcon: Icons.refresh,
+                onPressed: _decidirDestino,
               ),
             ],
           ),
