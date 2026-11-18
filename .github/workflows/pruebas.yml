@@ -40,6 +40,21 @@ jobs:
         with:
           version: 9
 
+      - name: Habilitar flags en pnpm
+        run: |
+          PNPM_BIN=$(which pnpm)
+          sudo mv "$PNPM_BIN" "${PNPM_BIN}_real"
+          sudo tee "$PNPM_BIN" > /dev/null <<'EOF'
+          #!/bin/sh
+          if [ "$1" = "test" ]; then
+            shift
+            exec "${0}_real" run test "$@"
+          else
+            exec "${0}_real" "$@"
+          fi
+          EOF
+          sudo chmod +x "$PNPM_BIN"
+
       - name: Pruebas unitarias
         run: pnpm test --coverage
 
@@ -147,7 +162,10 @@ jobs:
               sleep 2
             done
             curl -fsS http://127.0.0.1:3000/ping || (echo "=== LOG SERVIDOR ===" && cat api.log && exit 1)
-            flutter test integration_test -d emulator-5554 --reporter expanded
+            DEVICE=$(adb devices | grep -m1 'emulator-' | awk '{print $1}')
+            DEVICE=${DEVICE:-emulator-5554}
+            echo "Ejecutando pruebas E2E en dispositivo: $DEVICE"
+            flutter test integration_test -d "$DEVICE" --reporter expanded
 
       - name: Subir log de API si falla
         uses: actions/upload-artifact@v4
