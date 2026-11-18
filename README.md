@@ -109,6 +109,14 @@ docker compose -f docker-compose.prod.yml up -d --build
 
 Abre `https://presupuesto.sebaces.fyi`. Los puertos públicos son `NGINX_HTTP_PORT` (80) y `NGINX_HTTPS_PORT` (443).
 
+Imágenes publicadas en Docker Hub:
+
+```text
+sebastiandevjs/pre_estudiantil-web:latest
+sebastiandevjs/pre_estudiantil-api:latest
+sebastiandevjs/pre_estudiantil-nginx:latest
+```
+
 ### 3. Verificar
 
 ```bash
@@ -138,11 +146,13 @@ Pruebas de integración, con backend y dispositivo/emulador activos:
 flutter test integration_test -d <ID_DEL_DISPOSITIVO>
 ```
 
-## Usuario de prueba
+## Usuarios de prueba
 
-| Correo | Contraseña |
-|---|---|
-| prueba@correo.com | 123456 |
+| Correo | Contraseña | Nombre |
+|---|---|---|
+| prueba@correo.com | 123456 | Usuario Prueba |
+| prueba1@correo.com | 123456 | Ana Torres |
+| prueba2@correo.com | 123456 | Luis Rojas |
 
 ## Estructura
 

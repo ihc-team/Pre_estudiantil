@@ -42,11 +42,12 @@ docker compose -f docker-compose.dev.yml logs -f pre_estudiantil-api
 docker compose -f docker-compose.dev.yml exec -T pre_estudiantil-api npx prisma db seed
 ```
 
-Usuario de prueba:
+Usuarios de prueba (contraseña `123456`):
 
 ```text
-prueba@correo.com
-123456
+prueba@correo.com   Usuario Prueba
+prueba1@correo.com  Ana Torres
+prueba2@correo.com  Luis Rojas
 ```
 
 ## 3. App Flutter Web

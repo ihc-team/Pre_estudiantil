@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # ---------- Etapa 1: compilar Flutter Web ----------
-FROM ghcr.io/cirruslabs/flutter:stable AS build
+FROM ghcr.io/project516/flutter:3.47.8 AS build
 
 WORKDIR /app
 

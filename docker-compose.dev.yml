@@ -32,6 +32,7 @@ services:
     build:
       context: ./servidor
       dockerfile: Dockerfile.dev
+    image: sebastiandevjs/pre_estudiantil-api:dev
     container_name: pre_estudiantil_api_dev
     restart: unless-stopped
     env_file:

@@ -48,7 +48,13 @@ npx prisma migrate reset
 npm run semilla
 ```
 
-Carga el usuario `prueba@correo.com` con contraseña `123456`.
+Carga tres usuarios de prueba con contraseña `123456`:
+
+```text
+prueba@correo.com   Usuario Prueba
+prueba1@correo.com  Ana Torres
+prueba2@correo.com  Luis Rojas
+```
 
 ## Ejecutar
 
