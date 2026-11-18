@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../configuracion/constantes.dart';
 import '../configuracion/rutas.dart';
+import '../configuracion/tema/app_tokens.dart';
 import '../modelos/limite.dart';
 import '../modelos/movimiento.dart';
 import '../modelos/presupuesto_categoria.dart';
@@ -138,28 +138,33 @@ class _PantallaNuevoMovimientoState extends State<PantallaNuevoMovimiento> {
     final descartar = await showDialog<bool>(
       context: context,
       builder: (contexto) => AlertDialog(
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.transparent,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-        title: const Text(
+        backgroundColor: AppColors.surface,
+        surfaceTintColor: AppColors.transparent,
+        shape: RoundedRectangleBorder(borderRadius: AppRadius.borderModal),
+        title: Text(
           '¿Descartar los cambios?',
-          style: TextStyle(color: Colores.azulOscuro),
+          style: AppTypography.titleMedium.copyWith(
+            color: AppColors.textPrimary,
+          ),
         ),
-        content: const Text(
+        content: Text(
           'Tienes datos sin guardar. Si sales ahora, se perderán.',
-          style: TextStyle(color: Colores.grisAzulado, height: 1.4),
+          style: AppTypography.bodyMedium.copyWith(
+            color: AppColors.textSecondary,
+            height: 1.4,
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(contexto, false),
             child: const Text(
               'Seguir editando',
-              style: TextStyle(color: Colores.verdeOscuro),
+              style: TextStyle(color: AppColors.primary),
             ),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(contexto, true),
-            style: FilledButton.styleFrom(backgroundColor: Colors.red.shade700),
+            style: FilledButton.styleFrom(backgroundColor: AppColors.error),
             child: const Text('Descartar'),
           ),
         ],
@@ -237,47 +242,49 @@ class _PantallaNuevoMovimientoState extends State<PantallaNuevoMovimiento> {
   // Bloqueo por límite con sus dos salidas (H9.1)
   Widget _avisoBloqueo(String mensaje) {
     return Container(
-      margin: const EdgeInsets.only(top: 12),
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      margin: const EdgeInsets.only(top: AppSpacing.md),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        AppSpacing.lg,
+        AppSpacing.lg,
+        AppSpacing.sm,
+      ),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colores.rojo),
+        color: AppColors.surface,
+        borderRadius: AppRadius.borderCard,
+        border: Border.all(color: AppColors.error),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             mensaje,
-            style: const TextStyle(
-              color: Colores.rojo,
+            style: AppTypography.bodyMedium.copyWith(
+              color: AppColors.error,
               fontWeight: FontWeight.w600,
               height: 1.4,
             ),
           ),
           Wrap(
-            spacing: 8,
+            spacing: AppSpacing.sm,
             children: [
               TextButton.icon(
                 onPressed: _cambiarMonto,
-                icon: const Icon(
-                  Icons.edit_outlined,
-                  color: Colores.verdeOscuro,
-                ),
+                icon: const Icon(Icons.edit_outlined, color: AppColors.primary),
                 label: const Text(
                   'Cambiar monto',
-                  style: TextStyle(color: Colores.verdeOscuro),
+                  style: TextStyle(color: AppColors.primary),
                 ),
               ),
               TextButton.icon(
                 onPressed: _subirLimite,
                 icon: const Icon(
                   Icons.savings_outlined,
-                  color: Colores.verdeOscuro,
+                  color: AppColors.primary,
                 ),
                 label: const Text(
                   'Subir límite',
-                  style: TextStyle(color: Colores.verdeOscuro),
+                  style: TextStyle(color: AppColors.primary),
                 ),
               ),
             ],
@@ -308,20 +315,23 @@ class _PantallaNuevoMovimientoState extends State<PantallaNuevoMovimiento> {
       double.tryParse(_monto.text.trim().replaceAll(',', '.')),
       montoAnterior: montoAnterior,
     );
-    final color = aviso.seExcede ? Colores.rojo : Colores.grisAzulado;
+    final color = aviso.seExcede ? AppColors.error : AppColors.textSecondary;
 
     return Padding(
-      padding: const EdgeInsets.only(top: 8, left: 16, right: 16),
+      padding: const EdgeInsets.only(
+        top: AppSpacing.sm,
+        left: AppSpacing.lg,
+        right: AppSpacing.lg,
+      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(Icons.savings_outlined, size: 16, color: color),
-          const SizedBox(width: 6),
+          const SizedBox(width: AppSpacing.xs),
           Expanded(
             child: Text(
               aviso.texto,
-              style: TextStyle(
-                fontSize: 13,
+              style: AppTypography.labelSmall.copyWith(
                 color: color,
                 fontWeight: aviso.seExcede
                     ? FontWeight.w600
@@ -353,7 +363,7 @@ class _PantallaNuevoMovimientoState extends State<PantallaNuevoMovimiento> {
     // Si es que se esta editando y el movimiento previo ya era gasto en esta categoria, se descuenta su monto previo
     if (_editando &&
         widget.movimiento!.tipo == TipoMovimiento.gasto &&
-        widget.movimiento!.categoria?.name.toLowerCase() ==
+        widget.movimiento!.categoria.name.toLowerCase() ==
             nombreCat.toLowerCase()) {
       gastado = (gastado - widget.movimiento!.monto).clamp(
         0.0,
@@ -390,19 +400,22 @@ class _PantallaNuevoMovimientoState extends State<PantallaNuevoMovimiento> {
       context: context,
       barrierDismissible: false,
       builder: (contexto) => AlertDialog(
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.transparent,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        backgroundColor: AppColors.surface,
+        surfaceTintColor: AppColors.transparent,
+        shape: RoundedRectangleBorder(borderRadius: AppRadius.borderModal),
         title: Row(
-          children: const [
-            Icon(Icons.warning_amber_rounded, color: Colores.rojo, size: 28),
-            SizedBox(width: 8),
+          children: [
+            const Icon(
+              Icons.warning_amber_rounded,
+              color: AppColors.error,
+              size: 28,
+            ),
+            const SizedBox(width: AppSpacing.sm),
             Expanded(
               child: Text(
                 'Vas a superar el límite',
-                style: TextStyle(
-                  color: Colores.azulOscuro,
-                  fontSize: 20,
+                style: AppTypography.titleLarge.copyWith(
+                  color: AppColors.textPrimary,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -411,13 +424,17 @@ class _PantallaNuevoMovimientoState extends State<PantallaNuevoMovimiento> {
         ),
         content: Text(
           'Con este gasto superarás el límite de la categoría $categoriaTexto por $excesoTexto.\n\nPuedes regresar para ajustar el monto o confirmar si decides registrarlo de todas formas.',
-          style: const TextStyle(
-            color: Colores.grisAzulado,
+          style: AppTypography.bodyMedium.copyWith(
+            color: AppColors.textSecondary,
             height: 1.4,
-            fontSize: 15,
           ),
         ),
-        actionsPadding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+        actionsPadding: const EdgeInsets.fromLTRB(
+          AppSpacing.xl,
+          0,
+          AppSpacing.xl,
+          AppSpacing.xl,
+        ),
         actions: [
           // El principio de simetria (Anti patron #2)
           // Botones con el mismo peso visual, misma altura y sin textos que culpen.
@@ -425,34 +442,37 @@ class _PantallaNuevoMovimientoState extends State<PantallaNuevoMovimiento> {
             children: [
               Expanded(
                 child: SizedBox(
-                  height: 48,
+                  height: AppSizes.touchTargetMin,
                   child: OutlinedButton(
                     onPressed: () => Navigator.pop(contexto, false),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: Colores.azulOscuro,
-                      side: const BorderSide(color: Colores.grisAzulado),
+                      foregroundColor: AppColors.textPrimary,
+                      side: const BorderSide(color: AppColors.textSecondary),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: AppRadius.borderSm,
                       ),
                     ),
-                    child: const Text(
+                    child: Text(
                       'Seguir editando',
-                      style: TextStyle(fontWeight: FontWeight.w600),
+                      style: AppTypography.bodyMedium.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                      ),
                     ),
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: SizedBox(
-                  height: 48,
+                  height: AppSizes.touchTargetMin,
                   child: FilledButton(
                     onPressed: () => Navigator.pop(contexto, true),
                     style: FilledButton.styleFrom(
-                      backgroundColor: Colores.verdeOscuro,
-                      foregroundColor: Colors.white,
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: AppColors.onPrimary,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: AppRadius.borderSm,
                       ),
                     ),
                     child: const Text(
@@ -538,14 +558,14 @@ class _PantallaNuevoMovimientoState extends State<PantallaNuevoMovimiento> {
         await ServicioMovimientos.editar(
           widget.movimiento!,
           concepto,
-          monto!,
+          monto,
           _fecha!,
           _categoria!,
         );
       } else {
         await ServicioMovimientos.crear(
           concepto,
-          monto!,
+          monto,
           _fecha!,
           _tipo,
           _categoria!,
@@ -598,33 +618,35 @@ class _PantallaNuevoMovimientoState extends State<PantallaNuevoMovimiento> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 8, bottom: 8),
+          padding: const EdgeInsets.only(
+            left: AppSpacing.sm,
+            bottom: AppSpacing.sm,
+          ),
           child: Text(
             titulo,
-            style: const TextStyle(
-              fontSize: 14,
+            style: AppTypography.bodyMedium.copyWith(
               fontWeight: FontWeight.w600,
-              color: Colores.grisAzulado,
+              color: AppColors.textSecondary,
             ),
           ),
         ),
         Wrap(
-          spacing: 8,
-          runSpacing: 8,
+          spacing: AppSpacing.sm,
+          runSpacing: AppSpacing.sm,
           children: opciones.entries.map((e) {
             final elegido = valor == e.key;
             return ChoiceChip(
               label: Text(e.value),
               selected: elegido,
               showCheckmark: false,
-              selectedColor: Colores.verdeClaro,
-              backgroundColor: Colors.white,
+              selectedColor: AppColors.primaryContainer,
+              backgroundColor: AppColors.surface,
               labelStyle: TextStyle(
-                color: elegido ? Colores.verdeOscuro : Colores.azulOscuro,
+                color: elegido ? AppColors.primary : AppColors.textPrimary,
                 fontWeight: elegido ? FontWeight.w700 : FontWeight.w500,
               ),
               side: BorderSide(
-                color: elegido ? Colores.verdeOscuro : Colores.verdeClaro,
+                color: elegido ? AppColors.primary : AppColors.border,
               ),
               onSelected: alCambiar == null ? null : (_) => alCambiar(e.key),
             );
@@ -632,10 +654,13 @@ class _PantallaNuevoMovimientoState extends State<PantallaNuevoMovimiento> {
         ),
         if (error != null)
           Padding(
-            padding: const EdgeInsets.only(left: 8, top: 8),
+            padding: const EdgeInsets.only(
+              left: AppSpacing.sm,
+              top: AppSpacing.sm,
+            ),
             child: Text(
               error,
-              style: const TextStyle(fontSize: 13, color: Colores.rojo),
+              style: AppTypography.labelSmall.copyWith(color: AppColors.error),
             ),
           ),
       ],
@@ -658,37 +683,34 @@ class _PantallaNuevoMovimientoState extends State<PantallaNuevoMovimiento> {
       },
       child: Scaffold(
         appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          foregroundColor: Colores.azulOscuro,
+          backgroundColor: AppColors.transparent,
+          foregroundColor: AppColors.textPrimary,
         ),
         body: SafeArea(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxxl),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.lg),
                 Text(
                   _editando ? 'Editar movimiento' : 'Nuevo movimiento',
-                  style: const TextStyle(
-                    fontSize: 32,
+                  style: AppTypography.displaySmall.copyWith(
                     fontWeight: FontWeight.w800,
-                    color: Colores.azulOscuro,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: AppSpacing.sm),
                 Text(
                   _editando
                       ? 'Modifica los datos y guarda.'
                       : (_tipo == TipoMovimiento.ingreso
                             ? 'Se guardará como por cobrar.'
                             : 'Se guardará como pendiente.'),
-                  style: const TextStyle(
-                    fontSize: 16,
-                    color: Colores.grisAzulado,
+                  style: AppTypography.bodyLarge.copyWith(
+                    color: AppColors.textSecondary,
                   ),
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: AppSpacing.xxxl),
                 _selector<TipoMovimiento>(
                   _editando ? 'Tipo (no se puede cambiar)' : 'Tipo',
                   {for (final t in TipoMovimiento.values) t: t.texto},
@@ -703,7 +725,7 @@ class _PantallaNuevoMovimientoState extends State<PantallaNuevoMovimiento> {
                         }),
                 ),
                 if (!_editando && _tipo == TipoMovimiento.gasto) ...[
-                  const SizedBox(height: 20),
+                  const SizedBox(height: AppSpacing.xl),
                   _selector<String>(
                     'Recurrencia',
                     const {
@@ -719,7 +741,7 @@ class _PantallaNuevoMovimientoState extends State<PantallaNuevoMovimiento> {
                     }),
                   ),
                 ],
-                const SizedBox(height: 20),
+                const SizedBox(height: AppSpacing.xl),
                 _selector<CategoriaMovimiento>(
                   'Categoría',
                   {for (final c in CategoriaMovimiento.values) c: c.texto},
@@ -730,7 +752,7 @@ class _PantallaNuevoMovimientoState extends State<PantallaNuevoMovimiento> {
                   }),
                   error: _errorCategoria,
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: AppSpacing.xl),
                 CampoTexto(
                   controlador: _concepto,
                   etiqueta: 'Concepto',
@@ -742,7 +764,7 @@ class _PantallaNuevoMovimientoState extends State<PantallaNuevoMovimiento> {
                     }
                   },
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.lg),
                 CampoTexto(
                   controlador: _monto,
                   etiqueta: 'Monto (Bs)',
@@ -773,23 +795,26 @@ class _PantallaNuevoMovimientoState extends State<PantallaNuevoMovimiento> {
                 ),
                 if (_montoBloqueado)
                   Padding(
-                    padding: const EdgeInsets.only(top: 8, left: 16, right: 16),
+                    padding: const EdgeInsets.only(
+                      top: AppSpacing.sm,
+                      left: AppSpacing.lg,
+                      right: AppSpacing.lg,
+                    ),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Icon(
                           Icons.info_outline,
                           size: 16,
-                          color: Colores.grisAzulado,
+                          color: AppColors.textSecondary,
                         ),
-                        const SizedBox(width: 6),
+                        const SizedBox(width: AppSpacing.xs),
                         Expanded(
                           child: Text(
                             widget.movimiento?.motivoMontoBloqueadoTexto ??
                                 Movimiento.motivoMontoBloqueado,
-                            style: const TextStyle(
-                              fontSize: 13,
-                              color: Colores.grisAzulado,
+                            style: AppTypography.labelSmall.copyWith(
+                              color: AppColors.textSecondary,
                             ),
                           ),
                         ),
@@ -797,7 +822,7 @@ class _PantallaNuevoMovimientoState extends State<PantallaNuevoMovimiento> {
                     ),
                   ),
                 ?aviso,
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.lg),
                 CampoTexto(
                   controlador: _fechaTexto,
                   etiqueta: 'Fecha',
@@ -806,13 +831,13 @@ class _PantallaNuevoMovimientoState extends State<PantallaNuevoMovimiento> {
                   alTocar: _elegirFecha,
                   error: _errorFecha,
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: AppSpacing.xxxl),
                 SizedBox(
-                  height: 58,
+                  height: AppSizes.buttonHeight,
                   child: _cargando
                       ? const Center(
                           child: CircularProgressIndicator(
-                            color: Colores.verdeOscuro,
+                            color: AppColors.primary,
                           ),
                         )
                       : BotonPildora(
@@ -821,7 +846,7 @@ class _PantallaNuevoMovimientoState extends State<PantallaNuevoMovimiento> {
                           alPresionar: _guardar,
                         ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: AppSpacing.xxl),
               ],
             ),
           ),
