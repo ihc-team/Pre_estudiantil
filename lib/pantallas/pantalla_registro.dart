@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../configuracion/constantes.dart';
 import '../configuracion/rutas.dart';
+import '../configuracion/tema/app_tokens.dart';
 import '../modelos/correo.dart';
 import '../servicios/servicio_acceso.dart';
 import '../widgets/boton_pildora.dart';
@@ -83,35 +83,33 @@ class _PantallaRegistroState extends State<PantallaRegistro> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colores.azulOscuro,
+        backgroundColor: AppColors.transparent,
+        foregroundColor: AppColors.textPrimary,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 32),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxxl),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 16),
-              const Text(
+              const SizedBox(height: AppSpacing.lg),
+              Text(
                 'Crear cuenta',
-                style: TextStyle(
-                  fontSize: 32,
+                style: AppTypography.displaySmall.copyWith(
                   fontWeight: FontWeight.w800,
-                  color: Colores.azulOscuro,
                 ),
               ),
-              const SizedBox(height: 8),
-              const Text(
+              const SizedBox(height: AppSpacing.sm),
+              Text(
                 'Tus datos solo se usarán para gestionar tu presupuesto personal y no se compartirán con terceros.',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colores.grisAzulado,
+                style: AppTypography.bodyMedium.copyWith(
+                  color: AppColors.textSecondary,
                   height: 1.4,
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.xxl),
               CampoTexto(
                 controlador: _nombre,
                 etiqueta: 'Nombre',
@@ -121,7 +119,7 @@ class _PantallaRegistroState extends State<PantallaRegistro> {
                   if (_errorNombre != null) setState(() => _errorNombre = null);
                 },
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.lg),
               CampoTexto(
                 controlador: _correo,
                 etiqueta: 'Correo',
@@ -132,7 +130,7 @@ class _PantallaRegistroState extends State<PantallaRegistro> {
                   if (_errorCorreo != null) setState(() => _errorCorreo = null);
                 },
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.lg),
               CampoTexto(
                 controlador: _contrasena,
                 etiqueta: 'Contraseña',
@@ -140,11 +138,12 @@ class _PantallaRegistroState extends State<PantallaRegistro> {
                 esContrasena: true,
                 error: _errorContrasena,
                 alCambiar: (_) {
-                  if (_errorContrasena != null)
+                  if (_errorContrasena != null) {
                     setState(() => _errorContrasena = null);
+                  }
                 },
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.lg),
               CampoTexto(
                 controlador: _confirmacion,
                 etiqueta: 'Repetir contraseña',
@@ -152,17 +151,18 @@ class _PantallaRegistroState extends State<PantallaRegistro> {
                 esContrasena: true,
                 error: _errorConfirmacion,
                 alCambiar: (_) {
-                  if (_errorConfirmacion != null)
+                  if (_errorConfirmacion != null) {
                     setState(() => _errorConfirmacion = null);
+                  }
                 },
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: AppSpacing.xxxl),
               SizedBox(
-                height: 58,
+                height: AppSizes.buttonHeight,
                 child: _cargando
                     ? const Center(
                         child: CircularProgressIndicator(
-                          color: Colores.verdeOscuro,
+                          color: AppColors.primary,
                         ),
                       )
                     : BotonPildora(
@@ -171,7 +171,7 @@ class _PantallaRegistroState extends State<PantallaRegistro> {
                         alPresionar: _registrar,
                       ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.xxl),
             ],
           ),
         ),
