@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 
-import '../configuracion/constantes.dart';
 import '../configuracion/rutas.dart';
+import '../configuracion/tema/app_tokens.dart';
 import '../modelos/evento.dart';
 import '../modelos/limite.dart' show formatearBs;
 import '../servicios/servicio_historial.dart';
 import '../servicios/servicio_movimientos.dart';
+import '../widgets/app_button.dart';
 import '../widgets/mensajes.dart';
 
 // Historial de actividad (Tarea 4): lista agrupada por día, filtrable por chip.
-// Las 3 decisiones de interacción están en docs/decisiones-interaccion.md.
+// Migrada al Sistema Oficial de Tokens (AppColors, AppTypography, AppSpacing, AppRadius).
 class PantallaHistorial extends StatefulWidget {
   const PantallaHistorial({super.key});
 
@@ -63,18 +64,28 @@ class _PantallaHistorialState extends State<PantallaHistorial> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Historial'),
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colores.azulOscuro,
+        title: const Text(
+          'Historial',
+          style: AppTypography.titleLarge,
+        ),
+        backgroundColor: AppColors.transparent,
+        foregroundColor: AppColors.textPrimary,
+        elevation: 0,
       ),
       body: Padding(
-        padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.xxl,
+          AppSpacing.sm,
+          AppSpacing.xxl,
+          0,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _barraFiltros(),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
             Expanded(child: _contenido()),
           ],
         ),
@@ -83,23 +94,24 @@ class _PantallaHistorialState extends State<PantallaHistorial> {
   }
 
   // Hick: 5 chips mutuamente excluyentes organizados en Wrap.
-  // Todos estan visibles sin necesidad de scroll horizontal.
+  // Todos están visibles sin necesidad de scroll horizontal.
   Widget _barraFiltros() {
     return Wrap(
-      spacing: 8,
-      runSpacing: 8,
+      spacing: AppSpacing.sm,
+      runSpacing: AppSpacing.sm,
       children: [
         for (final f in FiltroHistorial.values)
           ChoiceChip(
             label: Text(f.etiqueta),
             selected: _filtro == f,
             onSelected: (_) => _cambiarFiltro(f),
-            selectedColor: Colores.verdeOscuro,
-            backgroundColor: Colores.verdeClaro,
-            labelStyle: TextStyle(
-              color: _filtro == f ? Colors.white : Colores.verdeOscuro,
+            selectedColor: AppColors.primary,
+            backgroundColor: AppColors.primaryContainer,
+            labelStyle: AppTypography.bodyMedium.copyWith(
+              color: _filtro == f ? AppColors.onPrimary : AppColors.primary,
               fontWeight: FontWeight.w600,
             ),
+            shape: const StadiumBorder(side: BorderSide.none),
             side: BorderSide.none,
             showCheckmark: false,
           ),
@@ -110,13 +122,13 @@ class _PantallaHistorialState extends State<PantallaHistorial> {
   Widget _contenido() {
     if (_cargando) {
       return const Center(
-        child: CircularProgressIndicator(color: Colores.verdeOscuro),
+        child: CircularProgressIndicator(color: AppColors.primary),
       );
     }
     if (_grupos.isEmpty) return _estadoVacio();
 
     return ListView.builder(
-      padding: const EdgeInsets.only(bottom: 24),
+      padding: const EdgeInsets.only(bottom: AppSpacing.xxl),
       itemCount: _grupos.length,
       itemBuilder: (context, i) => _grupoDia(_grupos[i]),
     );
@@ -131,40 +143,52 @@ class _PantallaHistorialState extends State<PantallaHistorial> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.history, size: 72, color: Colores.verdeClaro),
-          const SizedBox(height: 12),
+          const Icon(
+            Icons.history,
+            size: 72,
+            color: AppColors.primaryContainer,
+          ),
+          const SizedBox(height: AppSpacing.md),
           Text(
             texto,
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 16,
-              color: Colores.grisAzulado,
+            style: AppTypography.bodyLarge.copyWith(
+              color: AppColors.textSecondary,
               height: 1.5,
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.lg),
           if (sinFiltro)
-            FilledButton.icon(
-              onPressed: () async {
-                final creado = await Navigator.pushNamed(
-                  context,
-                  Rutas.nuevoMovimiento,
-                );
-                if (creado == true) await _cargar();
-              },
-              style: FilledButton.styleFrom(
-                backgroundColor: Colores.verdeOscuro,
-                minimumSize: const Size(220, 48),
+            SizedBox(
+              width: 240,
+              child: AppButton.primary(
+                size: AppButtonSize.medium,
+                leadingIcon: Icons.add,
+                showTrailingIcon: false,
+                label: 'Registrar gasto',
+                onPressed: () async {
+                  final creado = await Navigator.pushNamed(
+                    context,
+                    Rutas.nuevoMovimiento,
+                  );
+                  if (creado == true) await _cargar();
+                },
               ),
-              icon: const Icon(Icons.add),
-              label: const Text('Registrar gasto'),
             )
           else
             TextButton(
               onPressed: () => _cambiarFiltro(FiltroHistorial.todos),
-              child: const Text(
+              style: TextButton.styleFrom(
+                minimumSize: const Size(
+                  AppSizes.touchTargetMin,
+                  AppSizes.touchTargetMin,
+                ),
+              ),
+              child: Text(
                 'Ver todos',
-                style: TextStyle(color: Colores.verdeOscuro),
+                style: AppTypography.bodyLargeSemiBold.copyWith(
+                  color: AppColors.primary,
+                ),
               ),
             ),
         ],
@@ -177,13 +201,17 @@ class _PantallaHistorialState extends State<PantallaHistorial> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(4, 16, 4, 8),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.xs,
+            AppSpacing.lg,
+            AppSpacing.xs,
+            AppSpacing.sm,
+          ),
           child: Text(
             grupo.titulo,
-            style: const TextStyle(
-              fontSize: 18,
+            style: AppTypography.titleMedium.copyWith(
               fontWeight: FontWeight.w800,
-              color: Colores.azulOscuro,
+              color: AppColors.textPrimary,
             ),
           ),
         ),
@@ -198,59 +226,58 @@ class _PantallaHistorialState extends State<PantallaHistorial> {
     final estilo = _estiloDeTipo(evento.tipo);
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(14),
+      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colores.verdeClaro),
+        color: AppColors.surface,
+        borderRadius: AppRadius.borderCard,
+        border: Border.all(color: AppColors.borderStrong),
       ),
       child: Row(
         children: [
           Container(
-            width: 42,
-            height: 42,
+            width: 44,
+            height: 44,
             decoration: BoxDecoration(
               color: estilo.fondoIcono,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppSpacing.md),
             ),
             child: Icon(estilo.icono, color: estilo.colorIcono, size: 22),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   estilo.frase(evento.descripcion),
-                  style: const TextStyle(
-                    fontSize: 15,
+                  style: AppTypography.bodyMedium.copyWith(
                     fontWeight: FontWeight.w600,
-                    color: Colores.azulOscuro,
+                    color: AppColors.textPrimary,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: AppSpacing.xs),
                 Row(
                   children: [
                     if (evento.monto != null)
                       Text(
                         formatearBs(evento.monto!),
-                        style: TextStyle(
-                          fontSize: 14,
+                        style: AppTypography.bodyMedium.copyWith(
                           fontWeight: FontWeight.w700,
                           color: estilo.colorMonto,
                         ),
                       ),
                     if (evento.monto != null)
-                      const Text(
+                      Text(
                         ' · ',
-                        style: TextStyle(color: Colores.grisAzulado),
+                        style: AppTypography.bodyMedium.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
                       ),
                     Text(
                       evento.hora,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Colores.grisAzulado,
+                      style: AppTypography.bodyMedium.copyWith(
+                        color: AppColors.textSecondary,
                       ),
                     ),
                   ],
@@ -268,27 +295,27 @@ class _PantallaHistorialState extends State<PantallaHistorial> {
       case TipoEvento.gastoRegistrado:
         return _EstiloEvento(
           icono: Icons.trending_down,
-          colorIcono: Colores.rojo,
-          fondoIcono: const Color(0xFFFFE0E0),
-          colorMonto: Colores.rojo,
+          colorIcono: AppColors.statusExceeded,
+          fondoIcono: AppColors.statusExceededContainer,
+          colorMonto: AppColors.statusExceeded,
           frase: (d) =>
               d.isEmpty ? 'Registraste un gasto' : 'Registraste gasto: $d',
         );
       case TipoEvento.ingresoRegistrado:
         return _EstiloEvento(
           icono: Icons.trending_up,
-          colorIcono: Colores.verdeOscuro,
-          fondoIcono: Colores.verdeClaro,
-          colorMonto: Colores.verdeOscuro,
+          colorIcono: AppColors.primary,
+          fondoIcono: AppColors.statusNormalContainer,
+          colorMonto: AppColors.primary,
           frase: (d) =>
               d.isEmpty ? 'Registraste un ingreso' : 'Registraste ingreso: $d',
         );
       case TipoEvento.movimientoPagado:
         return _EstiloEvento(
           icono: Icons.check_circle_outline,
-          colorIcono: Colores.verdeOscuro,
-          fondoIcono: Colores.verdeClaro,
-          colorMonto: Colores.azulOscuro,
+          colorIcono: AppColors.primary,
+          fondoIcono: AppColors.statusNormalContainer,
+          colorMonto: AppColors.textPrimary,
           frase: (d) => d.isEmpty
               ? 'Marcaste como pagado un movimiento'
               : 'Marcaste como pagado: $d',
@@ -296,9 +323,9 @@ class _PantallaHistorialState extends State<PantallaHistorial> {
       case TipoEvento.limiteDefinido:
         return _EstiloEvento(
           icono: Icons.savings_outlined,
-          colorIcono: Colores.verdeOscuro,
-          fondoIcono: Colores.verdeClaro,
-          colorMonto: Colores.azulOscuro,
+          colorIcono: AppColors.primary,
+          fondoIcono: AppColors.statusNormalContainer,
+          colorMonto: AppColors.textPrimary,
           frase: (d) => d.isEmpty
               ? 'Definiste tu límite mensual'
               : 'Definiste tu límite: $d',
