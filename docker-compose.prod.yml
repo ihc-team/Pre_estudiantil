@@ -48,7 +48,7 @@ services:
     networks:
       - pre_estudiantil-net
     healthcheck:
-      test: [ "CMD-SHELL", "wget -qO- http://localhost:3000/ping >/dev/null 2>&1 || exit 1" ]
+      test: [ "CMD-SHELL", "wget -qO- http://127.0.0.1:3000/ping >/dev/null 2>&1 || exit 1" ]
       interval: 10s
       timeout: 3s
       retries: 10
@@ -65,12 +65,14 @@ services:
     image: sebastiandevjs/pre_estudiantil-web:latest
     container_name: pre_estudiantil_web_prod
     restart: unless-stopped
+    env_file:
+      - .env
     expose:
       - "80"
     networks:
       - pre_estudiantil-net
     healthcheck:
-      test: [ "CMD-SHELL", "wget -qO- http://localhost/ >/dev/null 2>&1 || exit 1" ]
+      test: [ "CMD-SHELL", "wget -qO- http://127.0.0.1/ >/dev/null 2>&1 || exit 1" ]
       interval: 10s
       timeout: 3s
       retries: 5
@@ -83,6 +85,8 @@ services:
     image: sebastiandevjs/pre_estudiantil-nginx:latest
     container_name: pre_estudiantil_nginx_prod
     restart: unless-stopped
+    env_file:
+      - .env
     ports:
       - "${NGINX_HTTP_PORT:-80}:80"
       - "${NGINX_HTTPS_PORT:-443}:443"
@@ -96,7 +100,7 @@ services:
     networks:
       - pre_estudiantil-net
     healthcheck:
-      test: [ "CMD-SHELL", "wget --no-check-certificate -qO- https://localhost/ping >/dev/null 2>&1 || exit 1" ]
+      test: [ "CMD-SHELL", "wget --no-check-certificate -qO- https://127.0.0.1/ping >/dev/null 2>&1 || exit 1" ]
       interval: 10s
       timeout: 3s
       retries: 5
