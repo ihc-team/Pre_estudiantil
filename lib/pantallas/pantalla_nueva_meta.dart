@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../configuracion/constantes.dart';
 import '../configuracion/rutas.dart';
+import '../configuracion/tema/app_tokens.dart';
 import '../modelos/movimiento.dart';
 import '../servicios/servicio_acceso.dart';
 import '../servicios/servicio_metas.dart';
@@ -97,30 +97,30 @@ class _PantallaNuevaMetaState extends State<PantallaNuevaMeta> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colores.azulOscuro,
+        backgroundColor: AppColors.transparent,
+        foregroundColor: AppColors.textPrimary,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 32),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxxl),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 16),
-              const Text(
+              const SizedBox(height: AppSpacing.lg),
+              Text(
                 'Nueva meta',
-                style: TextStyle(
-                  fontSize: 32,
+                style: AppTypography.displaySmall.copyWith(
                   fontWeight: FontWeight.w800,
-                  color: Colores.azulOscuro,
                 ),
               ),
-              const SizedBox(height: 8),
-              const Text(
+              const SizedBox(height: AppSpacing.sm),
+              Text(
                 'Define cuánto quieres ahorrar y para cuándo.',
-                style: TextStyle(fontSize: 16, color: Colores.grisAzulado),
+                style: AppTypography.bodyLarge.copyWith(
+                  color: AppColors.textSecondary,
+                ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: AppSpacing.xxxl),
               CampoTexto(
                 controlador: _nombre,
                 etiqueta: 'Nombre de la meta',
@@ -132,7 +132,7 @@ class _PantallaNuevaMetaState extends State<PantallaNuevaMeta> {
                   }
                 },
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.lg),
               CampoTexto(
                 controlador: _monto,
                 etiqueta: 'Monto objetivo (Bs)',
@@ -147,7 +147,7 @@ class _PantallaNuevaMetaState extends State<PantallaNuevaMeta> {
                   }
                 },
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.lg),
               CampoTexto(
                 controlador: _fechaTexto,
                 etiqueta: 'Fecha objetivo',
@@ -155,13 +155,13 @@ class _PantallaNuevaMetaState extends State<PantallaNuevaMeta> {
                 soloLectura: true,
                 alTocar: _elegirFecha,
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: AppSpacing.xxxl),
               SizedBox(
-                height: 58,
+                height: AppSizes.buttonHeight,
                 child: _cargando
                     ? const Center(
                         child: CircularProgressIndicator(
-                          color: Colores.verdeOscuro,
+                          color: AppColors.primary,
                         ),
                       )
                     : BotonPildora(
@@ -170,7 +170,7 @@ class _PantallaNuevaMetaState extends State<PantallaNuevaMeta> {
                         alPresionar: _guardar,
                       ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.xxl),
             ],
           ),
         ),
