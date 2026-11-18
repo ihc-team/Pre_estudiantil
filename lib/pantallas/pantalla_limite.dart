@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 
-import '../configuracion/constantes.dart';
 import '../configuracion/rutas.dart';
+import '../configuracion/tema/app_tokens.dart';
 import '../modelos/limite.dart';
+import '../modelos/presupuesto_categoria.dart';
+import '../servicios/analitica.dart';
 import '../servicios/servicio_acceso.dart';
 import '../servicios/servicio_limite.dart';
 import '../servicios/servicio_movimientos.dart';
 import '../widgets/boton_pildora.dart';
 import '../widgets/campo_texto.dart';
 import '../widgets/mensajes.dart';
-import '../modelos/presupuesto_categoria.dart';
-import '../servicios/analitica.dart';
 
 class PantallaLimite extends StatefulWidget {
   const PantallaLimite({super.key});
@@ -106,16 +106,17 @@ class _PantallaLimiteState extends State<PantallaLimite> {
     final guardado = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(
+          borderRadius: AppRadius.borderModal,
+        ),
         title: Row(
           children: [
-            Icon(item.icono, color: Colores.verdeOscuro, size: 22),
-            const SizedBox(width: 10),
+            Icon(item.icono, color: AppColors.primary, size: 22),
+            const SizedBox(width: AppSpacing.sm),
             Text(
               item.nombreLegible,
-              style: const TextStyle(
+              style: AppTypography.titleMedium.copyWith(
                 fontWeight: FontWeight.w700,
-                color: Colores.azulOscuro,
               ),
             ),
           ],
@@ -128,20 +129,32 @@ class _PantallaLimiteState extends State<PantallaLimite> {
             labelText: 'Presupuesto (Bs)',
             hintText: 'Ej.: 200',
             prefixText: 'Bs ',
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            border: OutlineInputBorder(
+              borderRadius: AppRadius.borderSm,
+            ),
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
+            style: TextButton.styleFrom(
+              minimumSize: const Size(
+                AppSizes.touchTargetMin,
+                AppSizes.touchTargetMin,
+              ),
+            ),
             child: const Text('Cancelar'),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colores.verdeOscuro,
-              foregroundColor: Colors.white,
+              backgroundColor: AppColors.primary,
+              foregroundColor: AppColors.onPrimary,
+              minimumSize: const Size(
+                AppSizes.touchTargetMin,
+                AppSizes.touchTargetMin,
+              ),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: AppRadius.borderSm,
               ),
             ),
             onPressed: () async {
@@ -203,21 +216,21 @@ class _PantallaLimiteState extends State<PantallaLimite> {
   // Confirmación de éxito junto al botón (clase 15, hallazgo 1)
   Widget _confirmacion(ResumenLimite r) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: AppSpacing.paddingCard,
       decoration: BoxDecoration(
-        color: Colores.verdeClaro,
-        borderRadius: BorderRadius.circular(16),
+        color: AppColors.statusNormalContainer,
+        borderRadius: AppRadius.borderCard,
       ),
       child: Row(
         children: [
-          const Icon(Icons.check_circle, color: Colores.verdeOscuro),
-          const SizedBox(width: 8),
+          const Icon(Icons.check_circle, color: AppColors.statusNormal),
+          const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Text(
               textoConfirmacionLimite(r),
-              style: const TextStyle(
+              style: AppTypography.bodyMedium.copyWith(
                 fontWeight: FontWeight.w600,
-                color: Colores.verdeOscuro,
+                color: AppColors.statusNormal,
               ),
             ),
           ),
@@ -234,35 +247,42 @@ class _PantallaLimiteState extends State<PantallaLimite> {
       'Es el límite de este mes y no puede ser menor a lo que ya gastaste.',
     ];
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: AppSpacing.paddingCard,
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colores.verdeClaro),
+        color: AppColors.surface,
+        borderRadius: AppRadius.borderCard,
+        border: Border.all(color: AppColors.borderStrong),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
-              Icon(Icons.info_outline, size: 18, color: Colores.verdeOscuro),
-              SizedBox(width: 8),
+              const Icon(
+                Icons.info_outline,
+                size: 18,
+                color: AppColors.primary,
+              ),
+              const SizedBox(width: AppSpacing.sm),
               Text(
                 'Cómo funciona',
-                style: TextStyle(
+                style: AppTypography.bodyLargeSemiBold.copyWith(
                   fontWeight: FontWeight.w700,
-                  color: Colores.azulOscuro,
+                  color: AppColors.textPrimary,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.sm),
           for (final regla in reglas)
             Padding(
-              padding: const EdgeInsets.only(top: 4),
+              padding: const EdgeInsets.only(top: AppSpacing.xs),
               child: Text(
                 '• $regla',
-                style: const TextStyle(color: Colores.grisAzulado, height: 1.4),
+                style: AppTypography.bodyMedium.copyWith(
+                  color: AppColors.textSecondary,
+                  height: 1.4,
+                ),
               ),
             ),
         ],
@@ -276,20 +296,19 @@ class _PantallaLimiteState extends State<PantallaLimite> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         IconButton(
-          icon: const Icon(Icons.chevron_left, color: Colores.azulOscuro),
+          icon: const Icon(Icons.chevron_left, color: AppColors.textPrimary),
           onPressed: () => _navegarMes(-1),
           tooltip: 'Mes anterior',
         ),
         Text(
           _etiquetaMes(_mesSeleccionado),
-          style: const TextStyle(
-            fontSize: 16,
+          style: AppTypography.bodyLarge.copyWith(
             fontWeight: FontWeight.w700,
-            color: Colores.azulOscuro,
+            color: AppColors.textPrimary,
           ),
         ),
         IconButton(
-          icon: const Icon(Icons.chevron_right, color: Colores.azulOscuro),
+          icon: const Icon(Icons.chevron_right, color: AppColors.textPrimary),
           onPressed: () => _navegarMes(1),
           tooltip: 'Mes siguiente',
         ),
@@ -332,16 +351,16 @@ class _PantallaLimiteState extends State<PantallaLimite> {
         : 'Toca para definir un presupuesto';
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: AppSpacing.md),
       child: InkWell(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: AppRadius.borderCard,
         onTap: () => _editarPresupuesto(item),
         child: Container(
-          padding: const EdgeInsets.all(16),
+          padding: AppSpacing.paddingCard,
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colores.verdeClaro),
+            color: AppColors.surface,
+            borderRadius: AppRadius.borderCard,
+            border: Border.all(color: AppColors.borderStrong),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -350,67 +369,63 @@ class _PantallaLimiteState extends State<PantallaLimite> {
               Row(
                 children: [
                   Icon(item.icono, color: item.colorEstado, size: 26),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: Text(
                       item.nombreLegible,
-                      style: const TextStyle(
-                        fontSize: 16,
+                      style: AppTypography.bodyLarge.copyWith(
                         fontWeight: FontWeight.w700,
-                        color: Colores.azulOscuro,
+                        color: AppColors.textPrimary,
                       ),
                     ),
                   ),
                   Icon(
                     Icons.edit_outlined,
                     size: 18,
-                    color: Colores.grisAzulado,
+                    color: AppColors.textSecondary,
                   ),
                 ],
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: AppSpacing.sm),
               // Barra de progreso
               ClipRRect(
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: const BorderRadius.all(Radius.circular(AppSpacing.xs)),
                 child: LinearProgressIndicator(
                   value: item.progresoBarra,
                   color: item.colorEstado,
-                  backgroundColor: Colores.verdeClaro,
+                  backgroundColor: AppColors.primaryContainer,
                   minHeight: 7,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.sm),
               // Gastado y porcentaje
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
                     'Gastado ${formatearBs(item.gastado)}',
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: Colores.grisAzulado,
+                    style: AppTypography.labelSmall.copyWith(
+                      color: AppColors.textSecondary,
                     ),
                   ),
                   if (item.tieneLimite)
                     Text(
                       '${item.porcentajeTexto} de ${formatearBs(item.limite!)}',
-                      style: TextStyle(
-                        fontSize: 13,
+                      style: AppTypography.labelSmall.copyWith(
                         fontWeight: FontWeight.w600,
                         color: item.colorEstado,
                       ),
                     ),
                 ],
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: AppSpacing.xs),
               // Estado textual
               Text(
                 texto,
-                style: TextStyle(
-                  fontSize: 12,
+                style: AppTypography.labelSmall.copyWith(
                   color: item.tieneLimite
                       ? item.colorEstado
-                      : Colores.grisAzulado,
+                      : AppColors.textSecondary,
                   fontStyle: item.tieneLimite
                       ? FontStyle.normal
                       : FontStyle.italic,
@@ -426,44 +441,44 @@ class _PantallaLimiteState extends State<PantallaLimite> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colores.azulOscuro,
+        backgroundColor: AppColors.transparent,
+        foregroundColor: AppColors.textPrimary,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 32),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxxl),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 16),
-              const Text(
+              const SizedBox(height: AppSpacing.lg),
+              Text(
                 'Límite del mes',
-                style: TextStyle(
-                  fontSize: 32,
+                style: AppTypography.displaySmall.copyWith(
                   fontWeight: FontWeight.w800,
-                  color: Colores.azulOscuro,
                 ),
               ),
-              const SizedBox(height: 8),
-              const Text(
+              const SizedBox(height: AppSpacing.sm),
+              Text(
                 'Cuánto quieres gastar como máximo este mes.',
-                style: TextStyle(fontSize: 16, color: Colores.grisAzulado),
+                style: AppTypography.bodyLarge.copyWith(
+                  color: AppColors.textSecondary,
+                ),
               ),
               // El limite no puede quedar por debajo de esto
               if (_resumen != null) ...[
-                const SizedBox(height: 8),
+                const SizedBox(height: AppSpacing.sm),
                 Text(
                   'Este mes ya gastaste ${formatearBs(_resumen!.gastado)}.',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    color: Colores.grisAzulado,
+                  style: AppTypography.bodyLarge.copyWith(
+                    color: AppColors.textSecondary,
                   ),
                 ),
               ],
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.lg),
               _comoFunciona(),
-              const SizedBox(height: 32),
+              const SizedBox(height: AppSpacing.xxxl),
               CampoTexto(
                 controlador: _limite,
                 etiqueta: 'Límite del mes (Bs)',
@@ -479,13 +494,13 @@ class _PantallaLimiteState extends State<PantallaLimite> {
                   _guardado = null;
                 }),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: AppSpacing.xxxl),
               SizedBox(
-                height: 58,
+                height: AppSizes.buttonHeight,
                 child: _cargando
                     ? const Center(
                         child: CircularProgressIndicator(
-                          color: Colores.verdeOscuro,
+                          color: AppColors.primary,
                         ),
                       )
                     : _guardado != null
@@ -502,40 +517,36 @@ class _PantallaLimiteState extends State<PantallaLimite> {
                       ),
               ),
               if (_guardado != null) ...[
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.lg),
                 _confirmacion(_guardado!),
               ],
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.xxl),
 
-              const SizedBox(height: 32),
+              const SizedBox(height: AppSpacing.xxxl),
               const Divider(),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.lg),
 
               // Titulo de seccion
-              const Text(
+              Text(
                 'Presupuesto por categorías',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Colores.azulOscuro,
-                ),
+                style: AppTypography.headlineMedium,
               ),
-              const SizedBox(height: 4),
-              const Text(
+              const SizedBox(height: AppSpacing.xs),
+              Text(
                 'Toca una categoría para definir o cambiar su presupuesto.',
-                style: TextStyle(fontSize: 14, color: Colores.grisAzulado),
+                style: AppTypography.bodyMedium,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
 
               // Selector de mes (tarea-7)
               _selectorMes(),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
 
               // Tarjeta de cada categoria
               for (final item in _presupuestosCategorias)
                 _tarjetaCategoria(item),
 
-              const SizedBox(height: 32),
+              const SizedBox(height: AppSpacing.xxxl),
             ],
           ),
         ),
