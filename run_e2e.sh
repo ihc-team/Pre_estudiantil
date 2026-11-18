@@ -1,4 +1,8 @@
 #!/bin/bash
+# Ejecucion manual/local de E2E.
+# No se usa en GitHub Actions: el emulador se queda colgado en el teardown
+# y agota el timeout aunque los tests terminen.
+# Uso: bash run_e2e.sh
 set -e
 
 echo "=== 1. Iniciando servidor API Node en segundo plano ==="

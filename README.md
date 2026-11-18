@@ -143,7 +143,16 @@ flutter test --coverage
 cd servidor && npm test
 ```
 
-El workflow [`pruebas.yml`](.github/workflows/pruebas.yml) corre unitarias, E2E Android y publica `coverage/lcov.info` como artefacto. La insignia enlaza a la última ejecución.
+El workflow [`pruebas.yml`](.github/workflows/pruebas.yml) corre las **unitarias Flutter** y publica `coverage/lcov.info` como artefacto. La insignia enlaza a la última ejecución.
+
+**Las pruebas E2E Android no se ejecutan en GitHub Actions.** El emulador se queda colgado en el `Terminate Emulator`/teardown y agota el timeout del job, aunque la suite de tests termine correctamente. Por eso se excluyeron del CI; se ejecutan manualmente con backend y emulador activos:
+
+```bash
+docker compose -f docker-compose.dev.yml up -d
+flutter test integration_test -d <ID_DEL_EMULADOR>
+```
+
+Esto mantiene el workflow verde sin afirmar que el CI ejecuta E2E.
 
 Cobertura actual de las unitarias Flutter: **9.81 % (294/2996 líneas)**. Lo pendiente está principalmente en pantallas, widgets y servicios; los modelos, validaciones y analítica son la parte cubierta. El porcentaje sale de `flutter test --coverage` y se puede revisar con `coverage/lcov.info`.
 
