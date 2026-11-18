@@ -31,6 +31,13 @@ DEVICE=$(adb devices | grep -m1 'emulator-' | awk '{print $1}')
 DEVICE=${DEVICE:-emulator-5554}
 echo "Emulador detectado: $DEVICE"
 
+cleanup_emulator() {
+  adb -s "$DEVICE" emu kill >/dev/null 2>&1 || true
+  pkill -9 -f "qemu-system.*-avd test" >/dev/null 2>&1 || true
+  pkill -9 -f "emulator.*-avd test" >/dev/null 2>&1 || true
+}
+trap cleanup_emulator EXIT
+
 echo "=== Esperando que el emulador asiente sus servicios ==="
 adb -s "$DEVICE" wait-for-device
 sleep 5
