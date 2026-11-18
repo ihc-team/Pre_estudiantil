@@ -31,5 +31,10 @@ DEVICE=$(adb devices | grep -m1 'emulator-' | awk '{print $1}')
 DEVICE=${DEVICE:-emulator-5554}
 echo "Emulador detectado: $DEVICE"
 
+echo "=== Esperando que el emulador asiente sus servicios ==="
+adb -s "$DEVICE" wait-for-device
+sleep 5
+
 echo "=== 4. Ejecutando pruebas E2E de Flutter ==="
 flutter test integration_test -d "$DEVICE" --reporter expanded
+
