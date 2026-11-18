@@ -35,6 +35,9 @@ echo "=== Esperando que el emulador asiente sus servicios ==="
 adb -s "$DEVICE" wait-for-device
 sleep 5
 
-echo "=== 4. Ejecutando pruebas E2E de Flutter ==="
-flutter test integration_test -d "$DEVICE" --reporter expanded
+echo "=== 4. Ejecutando pruebas E2E de Flutter (secuencial) ==="
+for test_file in integration_test/*_test.dart; do
+  echo "=== Ejecutando $test_file ==="
+  flutter test "$test_file" -d "$DEVICE" --reporter expanded
+done
 

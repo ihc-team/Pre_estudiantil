@@ -158,8 +158,9 @@ void main() {
     await tester.enterText(_campo('Monto (Bs)'), monto.toStringAsFixed(2));
 
     FocusManager.instance.primaryFocus?.unfocus();
-    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pumpAndSettle(const Duration(milliseconds: 500));
     await tester.ensureVisible(find.text('Guardar'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Guardar'));
 
     await _esperarSinTexto(tester, 'Categoría');
