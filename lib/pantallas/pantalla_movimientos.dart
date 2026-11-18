@@ -466,41 +466,84 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
         icon: const Icon(Icons.add),
         label: const Text('Nuevo movimiento'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.xxl,
-          AppSpacing.sm,
-          AppSpacing.xxl,
-          0,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Hola, $_nombre',
-              style: AppTypography.headlineMedium.copyWith(
-                fontWeight: FontWeight.w800,
+      body: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.xxl,
+                AppSpacing.sm,
+                AppSpacing.xxl,
+                0,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Hola, $_nombre',
+                    style: AppTypography.headlineMedium.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  // Sin límite definido no se muestra
+                  if (_resumen?.tieneLimite ?? false) ...[
+                    _tarjetaLimite(_resumen!),
+                    const SizedBox(height: AppSpacing.lg),
+                  ],
+                  if (_resumenMetas != null) ...[
+                    _tarjetaMetas(),
+                    const SizedBox(height: AppSpacing.lg),
+                  ],
+                ],
               ),
             ),
-            const SizedBox(height: AppSpacing.lg),
-            // Sin límite definido no se muestra
-            if (_resumen?.tieneLimite ?? false) ...[
-              _tarjetaLimite(_resumen!),
-              const SizedBox(height: AppSpacing.lg),
-            ],
-            if (_resumenMetas != null) ...[
-              _tarjetaMetas(),
-              const SizedBox(height: AppSpacing.lg),
-            ],
-            _chipsVista(),
-            const SizedBox(height: AppSpacing.sm),
-            _barraBusqueda(),
-            _filtrosActivos(),
-            _lineaTotales(),
-            const SizedBox(height: AppSpacing.md),
-            Expanded(child: _lista()),
-          ],
-        ),
+          ),
+          SliverPersistentHeader(
+            pinned: true,
+            delegate: _CabeceraFijaDelegate(
+              altura: 120,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _chipsVista(),
+                    const SizedBox(height: AppSpacing.xs),
+                    _barraBusqueda(),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _filtrosActivos(),
+                  _lineaTotales(),
+                  const SizedBox(height: AppSpacing.md),
+                ],
+              ),
+            ),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.xxl,
+              0,
+              AppSpacing.xxl,
+              96,
+            ),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate(
+                _elementosLista(),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -612,14 +655,19 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
   }
 
   Widget _chipsVista() {
-    return Wrap(
-      spacing: AppSpacing.sm,
-      children: [
-        _chipVista('Todos', _VistaMovimientos.todos),
-        _chipVista('Pendientes', _VistaMovimientos.pendientes),
-        _chipVista('Pagados', _VistaMovimientos.pagados),
-        _chipVista('Recurrentes', _VistaMovimientos.recurrentes),
-      ],
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          _chipVista('Todos', _VistaMovimientos.todos),
+          const SizedBox(width: AppSpacing.sm),
+          _chipVista('Pendientes', _VistaMovimientos.pendientes),
+          const SizedBox(width: AppSpacing.sm),
+          _chipVista('Pagados', _VistaMovimientos.pagados),
+          const SizedBox(width: AppSpacing.sm),
+          _chipVista('Recurrentes', _VistaMovimientos.recurrentes),
+        ],
+      ),
     );
   }
 
@@ -679,89 +727,76 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
     );
   }
 
-  Widget _lista() {
+  List<Widget> _elementosLista() {
     if (_cargandoLista) {
-      return const Center(
-        child: CircularProgressIndicator(color: AppColors.primary),
-      );
+      return const [
+        Padding(
+          padding: EdgeInsets.symmetric(vertical: AppSpacing.xxxl),
+          child: Center(
+            child: CircularProgressIndicator(color: AppColors.primary),
+          ),
+        ),
+      ];
     }
 
     final movimientos = _visibles;
     if (movimientos.isEmpty) {
       if (_filtros.hayFiltros) {
-        return Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Ningún movimiento coincide\ncon la búsqueda o los filtros.',
-                textAlign: TextAlign.center,
-                style: AppTypography.bodyLarge.copyWith(
-                  color: AppColors.textSecondary,
-                  height: 1.5,
-                ),
+        return [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxxl),
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Ningún movimiento coincide\ncon la búsqueda o los filtros.',
+                    textAlign: TextAlign.center,
+                    style: AppTypography.bodyLarge.copyWith(
+                      color: AppColors.textSecondary,
+                      height: 1.5,
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: _quitarTodos,
+                    child: const Text(
+                      'Quitar filtros',
+                      style: TextStyle(color: AppColors.primary),
+                    ),
+                  ),
+                ],
               ),
-              TextButton(
-                onPressed: _quitarTodos,
-                child: const Text(
-                  'Quitar filtros',
-                  style: TextStyle(color: AppColors.primary),
-                ),
-              ),
-            ],
+            ),
           ),
-        );
+        ];
       }
 
+      String mensajeVacio =
+          'Aún no tienes movimientos.\nCrea el primero con el botón de abajo.';
       if (_vista == _VistaMovimientos.recurrentes) {
-        return Center(
-          child: Text(
-            'No tienes gastos recurrentes.\nCrea uno desde Nuevo movimiento.',
-            textAlign: TextAlign.center,
-            style: AppTypography.bodyLarge.copyWith(
-              color: AppColors.textSecondary,
-              height: 1.5,
-            ),
-          ),
-        );
+        mensajeVacio =
+            'No tienes gastos recurrentes.\nCrea uno desde Nuevo movimiento.';
+      } else if (_vista == _VistaMovimientos.pendientes) {
+        mensajeVacio = 'No tienes movimientos pendientes.';
+      } else if (_vista == _VistaMovimientos.pagados) {
+        mensajeVacio = 'No tienes movimientos pagados.';
       }
 
-      if (_vista == _VistaMovimientos.pendientes) {
-        return Center(
-          child: Text(
-            'No tienes movimientos pendientes.',
-            textAlign: TextAlign.center,
-            style: AppTypography.bodyLarge.copyWith(
-              color: AppColors.textSecondary,
-              height: 1.5,
+      return [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxxl),
+          child: Center(
+            child: Text(
+              mensajeVacio,
+              textAlign: TextAlign.center,
+              style: AppTypography.bodyLarge.copyWith(
+                color: AppColors.textSecondary,
+                height: 1.5,
+              ),
             ),
-          ),
-        );
-      }
-
-      if (_vista == _VistaMovimientos.pagados) {
-        return Center(
-          child: Text(
-            'No tienes movimientos pagados.',
-            textAlign: TextAlign.center,
-            style: AppTypography.bodyLarge.copyWith(
-              color: AppColors.textSecondary,
-              height: 1.5,
-            ),
-          ),
-        );
-      }
-
-      return Center(
-        child: Text(
-          'Aún no tienes movimientos.\nCrea el primero con el botón de abajo.',
-          textAlign: TextAlign.center,
-          style: AppTypography.bodyLarge.copyWith(
-            color: AppColors.textSecondary,
-            height: 1.5,
           ),
         ),
-      );
+      ];
     }
 
     final ahora = DateTime.now();
@@ -810,10 +845,7 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
       }
     }
 
-    return ListView(
-      padding: const EdgeInsets.only(bottom: 96),
-      children: widgets,
-    );
+    return widgets;
   }
 
   Widget _encabezadoGrupo(String titulo, int cantidad) {
@@ -1238,5 +1270,42 @@ class _DialogoConfirmarEliminarState
         ),
       ],
     );
+  }
+}
+
+class _CabeceraFijaDelegate extends SliverPersistentHeaderDelegate {
+  final Widget child;
+  final double altura;
+
+  _CabeceraFijaDelegate({required this.child, required this.altura});
+
+  @override
+  double get minExtent => altura;
+
+  @override
+  double get maxExtent => altura;
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        border: overlapsContent
+            ? const Border(
+                bottom: BorderSide(color: AppColors.border),
+              )
+            : null,
+      ),
+      child: child,
+    );
+  }
+
+  @override
+  bool shouldRebuild(covariant _CabeceraFijaDelegate oldDelegate) {
+    return oldDelegate.altura != altura || oldDelegate.child != child;
   }
 }
