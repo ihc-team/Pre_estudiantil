@@ -12,6 +12,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Crear .env de unitarias
+        run: |
+          cat > .env <<'EOF'
+          API_BASE_URL=http://127.0.0.1:3000
+          APP_NAME="UniBudget"
+          DB_HOST=127.0.0.1
+          DB_PORT=5432
+          DB_USER=postgres
+          DB_PASSWORD=postgres
+          DB_NAME=pre_estudiantil
+          SERVER_PORT=3000
+          EOF
+
       - name: Configurar Flutter
         uses: subosito/flutter-action@v2
         with:
