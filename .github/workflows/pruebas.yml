@@ -32,11 +32,16 @@ jobs:
           channel: stable
           cache: true
 
-      - name: Dependencias
+      - name: Dependencias Flutter
         run: flutter pub get
 
+      - name: Configurar pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
       - name: Pruebas unitarias
-        run: flutter test --coverage --reporter expanded
+        run: pnpm test --coverage
 
       - name: Publicar cobertura
         uses: actions/upload-artifact@v4
@@ -101,13 +106,17 @@ jobs:
           DB_PASSWORD=postgres
           DB_NAME=pre_estudiantil
           SERVER_PORT=3000
+          DATABASE_URL="postgresql://postgres:postgres@127.0.0.1:5432/pre_estudiantil?schema=public"
           EOF
+          cp .env servidor/.env
 
       - name: Dependencias Flutter
         run: flutter pub get
 
       - name: Dependencias API y migraciones
         working-directory: servidor
+        env:
+          DATABASE_URL: "postgresql://postgres:postgres@127.0.0.1:5432/pre_estudiantil?schema=public"
         run: |
           npm ci
           npx prisma migrate deploy
@@ -121,10 +130,28 @@ jobs:
       - name: Pruebas E2E
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 34
-          target: google_apis
+          api-level: 31
+          target: default
           arch: x86_64
-          profile: pixel_6
+          profile: pixel
           disable-animations: true
-          emulator-boot-timeout: 900
-          script: nohup node servidor/servidor.js > api.log 2>&1 & sleep 5; for i in $(seq 1 30); do curl -fsS http://127.0.0.1:3000/ping >/dev/null && break; sleep 2; done; flutter test integration_test -d emulator-5554 --reporter expanded
+          emulator-boot-timeout: 600
+          script: |
+            (cd servidor && nohup node servidor.js > ../api.log 2>&1 &)
+            for i in $(seq 1 30); do
+              if curl -fsS http://127.0.0.1:3000/ping >/dev/null 2>&1; then
+                echo "Servidor listo en el intento $i"
+                break
+              fi
+              echo "Esperando servidor... $i"
+              sleep 2
+            done
+            curl -fsS http://127.0.0.1:3000/ping || (echo "=== LOG SERVIDOR ===" && cat api.log && exit 1)
+            flutter test integration_test -d emulator-5554 --reporter expanded
+
+      - name: Subir log de API si falla
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: api-log
+          path: api.log
