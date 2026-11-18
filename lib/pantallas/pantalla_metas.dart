@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../configuracion/constantes.dart';
 import '../configuracion/rutas.dart';
+import '../configuracion/tema/app_tokens.dart';
 import '../modelos/meta_ahorro.dart';
 import '../servicios/servicio_acceso.dart';
 import '../servicios/servicio_metas.dart';
@@ -74,15 +74,19 @@ class _PantallaMetasState extends State<PantallaMetas> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Metas de ahorro'),
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colores.azulOscuro,
+        title: Text(
+          'Metas de ahorro',
+          style: AppTypography.titleLarge,
+        ),
+        backgroundColor: AppColors.transparent,
+        foregroundColor: AppColors.textPrimary,
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _abrirNuevaMeta,
-        backgroundColor: Colores.verdeOscuro,
-        foregroundColor: Colors.white,
+        backgroundColor: AppColors.primary,
+        foregroundColor: AppColors.onPrimary,
         icon: const Icon(Icons.add),
         label: const Text('Nueva meta'),
       ),
@@ -93,28 +97,38 @@ class _PantallaMetasState extends State<PantallaMetas> {
   Widget _contenido() {
     if (_cargando) {
       return const Center(
-        child: CircularProgressIndicator(color: Colores.verdeOscuro),
+        child: CircularProgressIndicator(color: AppColors.primary),
       );
     }
 
     if (_error != null) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: AppSpacing.paddingModal,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 _error!,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: Colores.grisAzulado),
+                style: AppTypography.bodyLarge.copyWith(
+                  color: AppColors.textSecondary,
+                ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
               TextButton(
                 onPressed: _cargar,
-                child: const Text(
+                style: TextButton.styleFrom(
+                  minimumSize: const Size(
+                    AppSizes.touchTargetMin,
+                    AppSizes.touchTargetMin,
+                  ),
+                ),
+                child: Text(
                   'Reintentar',
-                  style: TextStyle(color: Colores.verdeOscuro),
+                  style: AppTypography.bodyLargeSemiBold.copyWith(
+                    color: AppColors.primary,
+                  ),
                 ),
               ),
             ],
@@ -125,28 +139,34 @@ class _PantallaMetasState extends State<PantallaMetas> {
 
     final resumen = _resumen;
     if (resumen == null) {
-      return const Center(
+      return Center(
         child: Text(
           'No se pudo cargar el resumen de metas.',
-          style: TextStyle(color: Colores.grisAzulado),
+          style: AppTypography.bodyLarge.copyWith(
+            color: AppColors.textSecondary,
+          ),
         ),
       );
     }
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(24, 8, 24, 96),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.xxl,
+        AppSpacing.sm,
+        AppSpacing.xxl,
+        96,
+      ),
       children: [
         ResumenMetasCard(resumen: resumen),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
         if (_metas.isEmpty)
-          const Padding(
-            padding: EdgeInsets.only(top: 24),
+          Padding(
+            padding: const EdgeInsets.only(top: AppSpacing.xxl),
             child: Text(
               'Aún no tienes metas de ahorro.\nCrea la primera con el botón de abajo.',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 16,
-                color: Colores.grisAzulado,
+              style: AppTypography.bodyLarge.copyWith(
+                color: AppColors.textSecondary,
                 height: 1.5,
               ),
             ),
@@ -159,18 +179,18 @@ class _PantallaMetasState extends State<PantallaMetas> {
 
   Widget _tarjetaMeta(MetaAhorro meta) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: AppSpacing.md),
       child: Material(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        color: AppColors.surface,
+        borderRadius: AppRadius.borderCard,
         child: InkWell(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: AppRadius.borderCard,
           onTap: () => _abrirDetalle(meta),
           child: Container(
-            padding: const EdgeInsets.all(16),
+            padding: AppSpacing.paddingCard,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colores.verdeClaro),
+              borderRadius: AppRadius.borderCard,
+              border: Border.all(color: AppColors.borderStrong),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -180,38 +200,41 @@ class _PantallaMetasState extends State<PantallaMetas> {
                     Expanded(
                       child: Text(
                         meta.nombre,
-                        style: const TextStyle(
-                          fontSize: 18,
+                        style: AppTypography.titleMedium.copyWith(
                           fontWeight: FontWeight.w700,
-                          color: Colores.azulOscuro,
                         ),
                       ),
                     ),
-                    const Icon(Icons.chevron_right, color: Colores.grisAzulado),
+                    const Icon(
+                      Icons.chevron_right,
+                      color: AppColors.textSecondary,
+                    ),
                   ],
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: AppSpacing.xs),
                 Text(
                   '${meta.montoReservadoTexto} de ${meta.montoObjetivoTexto}',
-                  style: const TextStyle(
+                  style: AppTypography.bodyMedium.copyWith(
                     fontWeight: FontWeight.w600,
-                    color: Colores.verdeOscuro,
+                    color: AppColors.primary,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: AppSpacing.sm),
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: AppRadius.borderSm,
                   child: LinearProgressIndicator(
                     value: meta.progreso.clamp(0, 1).toDouble(),
                     minHeight: 8,
-                    color: Colores.verdeOscuro,
-                    backgroundColor: Colores.verdeClaro,
+                    color: AppColors.primary,
+                    backgroundColor: AppColors.primaryContainer,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: AppSpacing.sm),
                 Text(
                   'Falta ${meta.restanteTexto} · ${meta.fechaTexto}',
-                  style: const TextStyle(color: Colores.grisAzulado),
+                  style: AppTypography.bodyMedium.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
                 ),
               ],
             ),
