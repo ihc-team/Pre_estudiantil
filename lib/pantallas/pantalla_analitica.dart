@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../configuracion/constantes.dart';
+import '../configuracion/tema/app_tokens.dart';
 import '../servicios/analitica.dart';
 
 class PantallaAnalitica extends StatefulWidget {
@@ -40,10 +40,11 @@ class _PantallaAnaliticaState extends State<PantallaAnalitica> {
     final ultimos = _datos['ultimos'] as List<dynamic>? ?? [];
 
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('Analítica de interacción'),
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colores.azulOscuro,
+        backgroundColor: AppColors.transparent,
+        foregroundColor: AppColors.textPrimary,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -55,25 +56,26 @@ class _PantallaAnaliticaState extends State<PantallaAnalitica> {
       body: SafeArea(
         child: _cargando
             ? const Center(
-                child: CircularProgressIndicator(color: Colores.verdeOscuro),
+                child: CircularProgressIndicator(color: AppColors.primary),
               )
             : ListView(
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(AppSpacing.xxl),
                 children: [
-                  const Text(
+                  Text(
                     'Embudos de los flujos principales',
-                    style: TextStyle(
-                      fontSize: 18,
+                    style: AppTypography.titleMedium.copyWith(
                       fontWeight: FontWeight.w700,
-                      color: Colores.azulOscuro,
+                      color: AppColors.textPrimary,
                     ),
                   ),
-                  const SizedBox(height: 6),
-                  const Text(
+                  const SizedBox(height: AppSpacing.sm),
+                  Text(
                     'Monitoreo de conversion y caida por flujo (inicio -> exito)',
-                    style: TextStyle(color: Colores.grisAzulado, fontSize: 14),
+                    style: AppTypography.bodyMedium.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.lg),
 
                   // 1. Embudo Movimientos
                   _tarjetaEmbudo(
@@ -84,7 +86,7 @@ class _PantallaAnaliticaState extends State<PantallaAnalitica> {
                     tasaCaida: '${mov['caida'] ?? 0.0} %',
                     icono: Icons.receipt_long_outlined,
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.md),
 
                   // 2. Embudo metas
                   _tarjetaEmbudo(
@@ -97,7 +99,7 @@ class _PantallaAnaliticaState extends State<PantallaAnalitica> {
                         'Operaciones de fondos: ${metas['fondosOperados'] ?? 0}',
                     icono: Icons.flag_outlined,
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.md),
 
                   // 3. Embudo limites
                   _tarjetaEmbudo(
@@ -108,50 +110,49 @@ class _PantallaAnaliticaState extends State<PantallaAnalitica> {
                     tasaCaida: '${limites['caida'] ?? 0.0} %',
                     icono: Icons.savings_outlined,
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: AppSpacing.xl),
 
                   // 4 Efectividad del aviso de limite (Parte B)
-                  const Text(
+                  Text(
                     'Efectividad del aviso de limite (Parte B)',
-                    style: TextStyle(
-                      fontSize: 16,
+                    style: AppTypography.bodyLargeSemiBold.copyWith(
                       fontWeight: FontWeight.w700,
-                      color: Colores.azulOscuro,
+                      color: AppColors.textPrimary,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppSpacing.sm),
                   _tarjetaAviso(aviso),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: AppSpacing.xl),
 
                   // 5 Puntos de friccion
-                  const Text(
+                  Text(
                     'Puntos de fricción y busquedas en blanco',
-                    style: TextStyle(
-                      fontSize: 16,
+                    style: AppTypography.bodyLargeSemiBold.copyWith(
                       fontWeight: FontWeight.w700,
-                      color: Colores.azulOscuro,
+                      color: AppColors.textPrimary,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppSpacing.sm),
                   _tarjetaFriccion(errores, busquedasSinRes),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: AppSpacing.xxl),
 
                   // 6 Ultimos Eventos
-                  const Text(
+                  Text(
                     'Ultimos eventos registrados',
-                    style: TextStyle(
-                      fontSize: 16,
+                    style: AppTypography.bodyLargeSemiBold.copyWith(
                       fontWeight: FontWeight.w700,
-                      color: Colores.azulOscuro,
+                      color: AppColors.textPrimary,
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.md),
                   if (ultimos.isEmpty)
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 16),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
                       child: Text(
                         'Aun no hay eventos registrados.',
-                        style: TextStyle(color: Colores.grisAzulado),
+                        style: AppTypography.bodyMedium.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
                       ),
                     )
                   else
@@ -172,82 +173,81 @@ class _PantallaAnaliticaState extends State<PantallaAnalitica> {
     required IconData icono,
   }) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: AppSpacing.paddingCard,
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colores.verdeClaro),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppRadius.card),
+        border: Border.all(color: AppColors.borderStrong),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(icono, color: Colores.verdeOscuro, size: 22),
-              const SizedBox(width: 8),
+              Icon(icono, color: AppColors.primary, size: 22),
+              const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Text(
                   titulo,
-                  style: const TextStyle(
+                  style: AppTypography.bodyLargeSemiBold.copyWith(
                     fontWeight: FontWeight.w700,
-                    fontSize: 15,
-                    color: Colores.azulOscuro,
+                    color: AppColors.textPrimary,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: AppSpacing.md),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 pasoInicio,
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: Colores.grisAzulado,
+                style: AppTypography.bodyMedium.copyWith(
+                  color: AppColors.textSecondary,
                 ),
               ),
               Text(
                 pasoExito,
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: Colores.azulOscuro,
+                style: AppTypography.bodyMedium.copyWith(
+                  color: AppColors.textPrimary,
                   fontWeight: FontWeight.w600,
                 ),
               ),
               Text(
                 'Caida: $tasaCaida',
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: Colores.rojo,
+                style: AppTypography.bodyMedium.copyWith(
+                  color: AppColors.error,
                   fontWeight: FontWeight.w600,
                 ),
               ),
+              const SizedBox(height: AppSpacing.xs),
               Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.sm,
+                  vertical: AppSpacing.xs,
+                ),
                 decoration: BoxDecoration(
-                  color: Colores.verdeClaro,
-                  borderRadius: BorderRadius.circular(12),
+                  color: AppColors.statusNormalContainer,
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
                 ),
                 child: Text(
                   'Exito: $tasaConversion',
-                  style: const TextStyle(
+                  style: AppTypography.labelSmall.copyWith(
                     fontWeight: FontWeight.w700,
-                    color: Colores.verdeOscuro,
-                    fontSize: 12,
+                    color: AppColors.primary,
                   ),
                 ),
               ),
             ],
           ),
           if (detalleExtra != null) ...[
-            const SizedBox(height: 6),
+            const SizedBox(height: AppSpacing.xs),
             Text(
               detalleExtra,
-              style: const TextStyle(
-                fontSize: 12,
-                color: Colores.grisAzulado,
+              style: AppTypography.labelSmall.copyWith(
+                color: AppColors.textSecondary,
                 fontStyle: FontStyle.italic,
               ),
             ),
@@ -264,11 +264,11 @@ class _PantallaAnaliticaState extends State<PantallaAnalitica> {
     final disuasion = aviso['tasaDisuasion'] ?? 0.0;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: AppSpacing.paddingCard,
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colores.verdeClaro),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppRadius.card),
+        border: Border.all(color: AppColors.borderStrong),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -278,27 +278,27 @@ class _PantallaAnaliticaState extends State<PantallaAnalitica> {
             children: [
               Text(
                 'Avisos mostrados: $mostrados',
-                style: const TextStyle(
+                style: AppTypography.bodyLargeSemiBold.copyWith(
                   fontWeight: FontWeight.w600,
-                  color: Colores.azulOscuro,
+                  color: AppColors.textPrimary,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: AppSpacing.sm),
           Text(
             '• Cancelados (evito gasto): $cancelados\n• Confirmados (asumio exceso): $confirmados',
-            style: const TextStyle(
-              fontSize: 13,
-              color: Colores.grisAzulado,
+            style: AppTypography.bodyMedium.copyWith(
+              color: AppColors.textSecondary,
               height: 1.4,
             ),
           ),
+          const SizedBox(height: AppSpacing.xs),
           Text(
             'Disuasion: $disuasion %',
-            style: const TextStyle(
+            style: AppTypography.bodyLargeSemiBold.copyWith(
               fontWeight: FontWeight.bold,
-              color: Colores.verdeOscuro,
+              color: AppColors.primary,
             ),
           ),
         ],
@@ -308,35 +308,35 @@ class _PantallaAnaliticaState extends State<PantallaAnalitica> {
 
   Widget _tarjetaFriccion(Map<String, dynamic> errores, int busquedasSinRes) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: AppSpacing.paddingCard,
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colores.verdeClaro),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppRadius.card),
+        border: Border.all(color: AppColors.borderStrong),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'Búsquedas sin resultados: $busquedasSinRes',
-            style: const TextStyle(
-              fontSize: 13,
+            style: AppTypography.bodyMedium.copyWith(
               fontWeight: FontWeight.w600,
-              color: Colores.azulOscuro,
+              color: AppColors.textPrimary,
             ),
           ),
-          const SizedBox(height: 8),
-          const Text(
+          const SizedBox(height: AppSpacing.sm),
+          Text(
             'Errores que frenaron el formulario:',
-            style: TextStyle(fontSize: 13, color: Colores.grisAzulado),
+            style: AppTypography.bodyMedium.copyWith(
+              color: AppColors.textSecondary,
+            ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: AppSpacing.xs),
           if (errores.isEmpty)
-            const Text(
+            Text(
               'Sin errores registrados',
-              style: TextStyle(
-                fontSize: 12,
-                color: Colores.grisAzulado,
+              style: AppTypography.labelSmall.copyWith(
+                color: AppColors.textSecondary,
                 fontStyle: FontStyle.italic,
               ),
             )
@@ -344,7 +344,10 @@ class _PantallaAnaliticaState extends State<PantallaAnalitica> {
             for (final entry in errores.entries)
               Text(
                 '• ${_motivoLegible(entry.key)}: ${entry.value}',
-                style: const TextStyle(fontSize: 12, color: Colores.rojo),
+                style: AppTypography.labelSmall.copyWith(
+                  color: AppColors.error,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
         ],
       ),
@@ -370,38 +373,41 @@ class _PantallaAnaliticaState extends State<PantallaAnalitica> {
     final esExito = nombre == 'movimiento_guardado';
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.md,
+      ),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colores.verdeClaro.withValues(alpha: 0.6)),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppRadius.sm + AppSpacing.xs),
+        border: Border.all(
+          color: AppColors.borderStrong.withValues(alpha: 0.6),
+        ),
       ),
       child: Row(
         children: [
           Icon(
             esExito ? Icons.check_circle_outline : Icons.play_circle_outline,
-            color: esExito ? Colores.verdeOscuro : Colores.azulOscuro,
+            color: esExito ? AppColors.primary : AppColors.textPrimary,
             size: 20,
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   nombre,
-                  style: const TextStyle(
+                  style: AppTypography.bodyMedium.copyWith(
                     fontWeight: FontWeight.w600,
-                    fontSize: 13,
-                    color: Colores.azulOscuro,
+                    color: AppColors.textPrimary,
                   ),
                 ),
                 Text(
                   'tipo: ${props['tipo'] ?? 'desconocido'} · $fecha',
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: Colores.grisAzulado,
+                  style: AppTypography.labelSmall.copyWith(
+                    color: AppColors.textSecondary,
                   ),
                 ),
               ],
