@@ -42,4 +42,6 @@ Estos nombres coinciden con los roles usados en el código (`AppColors.primary`,
 
 **Resultado:** **16 referencias de color fijas** en esa pantalla. Ejemplos: `Colors.white`, `Colors.transparent`, `Colors.red.shade700`, `Colors.red`, `Color(0xFFFFE9C7)` y `Color(0xFF8A5A00)`.
 
-No se corrigió el código en esta entrega; solo se hizo el inventario y el conteo.
+No se corrigió el código durante la clase; solo se hizo el inventario y el conteo.
+
+**Actualización posterior:** se migraron los colores fijos de `lib/` a `AppColors` y la búsqueda de `Color(0x...)`/`Colors.*` fuera de `app_tokens.dart` quedó en **0 referencias**. El sistema de componentes en Figma sigue siendo trabajo manual.

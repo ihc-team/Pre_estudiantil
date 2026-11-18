@@ -3,6 +3,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'tema/app_tokens.dart';
 
+export 'tema/app_tokens.dart';
+
 // Clase retrocompatible que mapea a los nuevos tokens oficiales con [AppColors]
 // Se permite migrar pantallas progresivamente sin romper el codigo que ya existe
 class Colores {

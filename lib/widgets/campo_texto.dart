@@ -79,7 +79,7 @@ class _CampoTextoState extends State<CampoTexto> {
               )
             : null,
         filled: true,
-        fillColor: Colors.white,
+        fillColor: AppColors.surface,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 20,
           vertical: 18,

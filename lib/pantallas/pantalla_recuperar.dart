@@ -106,7 +106,7 @@ class _PantallaRecuperarState extends State<PantallaRecuperar> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: AppColors.transparent,
         foregroundColor: Colores.azulOscuro,
       ),
       body: SafeArea(

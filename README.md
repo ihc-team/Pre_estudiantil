@@ -1,5 +1,7 @@
 # UniBudget - Presupuesto Estudiantil
 
+[![Pruebas](https://github.com/ihc-team/Pre_estudiantil/actions/workflows/pruebas.yml/badge.svg?branch=main)](https://github.com/ihc-team/Pre_estudiantil/actions/workflows/pruebas.yml)
+
 Aplicación Flutter para registrar ingresos, gastos, límites y metas de ahorro. La API es Node.js + Express + Prisma y la base de datos es PostgreSQL 16.
 
 ```text
@@ -133,12 +135,17 @@ docker compose -f docker-compose.prod.yml down -v
 
 `down -v` elimina los datos de PostgreSQL.
 
-## Pruebas
+## Pruebas y cobertura
 
 ```bash
 flutter test
+flutter test --coverage
 cd servidor && npm test
 ```
+
+El workflow [`pruebas.yml`](.github/workflows/pruebas.yml) corre unitarias, E2E Android y publica `coverage/lcov.info` como artefacto. La insignia enlaza a la última ejecución.
+
+Cobertura actual de las unitarias Flutter: **9.81 % (294/2996 líneas)**. Lo pendiente está principalmente en pantallas, widgets y servicios; los modelos, validaciones y analítica son la parte cubierta. El porcentaje sale de `flutter test --coverage` y se puede revisar con `coverage/lcov.info`.
 
 Pruebas de integración, con backend y dispositivo/emulador activos:
 

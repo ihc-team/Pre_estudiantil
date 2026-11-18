@@ -15,7 +15,7 @@ void mostrarMensaje(
     ..showSnackBar(
       SnackBar(
         content: Text(texto),
-        backgroundColor: esError ? Colors.red.shade700 : Colores.verdeOscuro,
+        backgroundColor: esError ? AppColors.statusExceeded : Colores.verdeOscuro,
         behavior: SnackBarBehavior.floating,
       ),
     );

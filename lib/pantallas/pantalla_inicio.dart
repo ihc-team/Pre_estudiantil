@@ -9,7 +9,7 @@ import '../widgets/fondo_decorativo.dart';
 Pantalla publica de bienvenida migrada al sistema de tokens (Clase 23)
 
 Cumple con:
-- Cero valores Color(0x...) ni Colors.xxx (usa AppColors)
+- Cero valores de color fijos (usa AppColors)
 - Cero estilos de texto o fuentes sueltas (usa AppTypography)
 - Cero paddings o espacios con numeros magicos (usa AppSpacing)
 - Area tactil minima >= 48dp en botones de enlace (AppSizes.touchTargetMin)

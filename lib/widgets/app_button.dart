@@ -89,13 +89,13 @@ class AppButton extends StatelessWidget {
     if (!_isEnabled) {
       return variant == AppButtonVariant.primary
           ? AppColors.border
-          : Colors.transparent;
+          : AppColors.transparent;
     }
     switch (variant) {
       case AppButtonVariant.primary:
         return AppColors.primary;
       case AppButtonVariant.secondary:
-        return Colors.transparent;
+        return AppColors.transparent;
     }
   }
 

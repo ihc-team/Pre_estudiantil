@@ -12,7 +12,7 @@ Future<FiltrosMovimientos?> mostrarHojaFiltros(
   return showModalBottomSheet<FiltrosMovimientos>(
     context: context,
     isScrollControlled: true,
-    backgroundColor: Colors.white,
+    backgroundColor: AppColors.surface,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
     ),
@@ -120,7 +120,7 @@ class _HojaFiltrosState extends State<_HojaFiltros> {
               selected: elegido,
               showCheckmark: false,
               selectedColor: Colores.verdeClaro,
-              backgroundColor: Colors.white,
+              backgroundColor: AppColors.surface,
               labelStyle: TextStyle(
                 color: elegido ? Colores.verdeOscuro : Colores.azulOscuro,
                 fontWeight: elegido ? FontWeight.w700 : FontWeight.w500,
