@@ -1,7 +1,7 @@
 FROM node:24-alpine AS deps
 WORKDIR /app
 
-COPY package*.json ./
+COPY servidor/package*.json ./
 RUN npm ci
 
 FROM node:24-alpine AS runner
@@ -12,9 +12,9 @@ RUN apk add --no-cache openssl
 ENV NODE_ENV=production
 
 COPY --from=deps /app/node_modules ./node_modules
-COPY package*.json ./
-COPY prisma ./prisma
-COPY *.js ./
+COPY servidor/package*.json ./
+COPY servidor/prisma ./prisma
+COPY servidor/*.js ./
 
 RUN npx prisma generate
 

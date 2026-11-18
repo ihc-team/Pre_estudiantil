@@ -48,9 +48,8 @@ app.*.map.json
 .widget_preview/
 
 # Backend
-servidor/.env
 servidor/node_modules/
-# Variables de entorno de Flutter (locales)
+# Variables de entorno locales
 /.env
 # Claude Code (local de cada uno, no se sube)
 .claude/

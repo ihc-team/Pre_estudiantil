@@ -22,7 +22,7 @@ services:
     networks:
       - pre_estudiantil-net
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}" ]
+      test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}" ]
       interval: 5s
       timeout: 3s
       retries: 20
@@ -30,30 +30,27 @@ services:
   # ---------- API Express + Prisma con hot-reload ----------
   pre_estudiantil-api:
     build:
-      context: .
+      context: ./servidor
       dockerfile: Dockerfile.dev
     container_name: pre_estudiantil_api_dev
     restart: unless-stopped
     env_file:
       - .env
     environment:
-      # Dentro de la red de Docker la base se llama por su servicio y usa su puerto interno
-      DB_HOST: pre_estudiantil_db_dev
+      DB_HOST: pre_estudiantil-db
       DB_PORT: 5432
     expose:
       - "${SERVER_PORT}"
     ports:
       - "${SERVER_PORT}:${SERVER_PORT}"
     volumes:
-      # El código del host se monta en el contenedor: nodemon detecta los cambios
-      - .:/app
-      # Conserva las dependencias instaladas dentro de la imagen
+      - ./servidor:/app
       - /app/node_modules
     command: sh -c "npx prisma migrate deploy && npx prisma db seed && npx nodemon --legacy-watch servidor.js"
     networks:
       - pre_estudiantil-net
     healthcheck:
-      test: [ "CMD-SHELL", "wget -qO- http://localhost:${SERVER_PORT}/ping >/dev/null 2>&1 || exit 1" ]
+      test: [ "CMD-SHELL", "wget -qO- http://localhost:$${SERVER_PORT}/ping >/dev/null 2>&1 || exit 1" ]
       interval: 10s
       timeout: 3s
       retries: 10
@@ -67,6 +64,5 @@ volumes:
 
 networks:
   pre_estudiantil-net:
-    # nombre propio para no chocar con el despliegue de producción
     name: pre_estudiantil-net-dev
     driver: bridge

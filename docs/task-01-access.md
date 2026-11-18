@@ -42,7 +42,7 @@
 - `servidor.js`: rutas de la API y verificación de sesión (`exigirSesion`)
 - `conexion.js`: cliente de Prisma (ORM) para PostgreSQL
 - `prisma/semilla.js`: datos iniciales
-- `.env.example`: variables necesarias
+- `.env.sample` (raíz): variables necesarias
 
 **App (`lib/`)**
 - `main.dart`: arranque, tema y rutas

@@ -10,11 +10,13 @@ npm install
 
 ## Variables de entorno
 
-Copia `.env.example` a `.env` y ajusta con tus datos de PostgreSQL:
+La configuración vive en el `.env` de la raíz del repositorio. Créala desde la plantilla:
 
 ```shell
-cp .env.example .env
+cp ../.env.sample ../.env
 ```
+
+El backend lee ese archivo automáticamente; no hay un `.env` dentro de `servidor/`.
 
 ## Base de datos
 
