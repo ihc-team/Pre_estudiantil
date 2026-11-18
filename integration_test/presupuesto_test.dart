@@ -73,6 +73,14 @@ Future<void> _esperarSinSnackBar(WidgetTester tester) async {
   }
 }
 
+Future<void> _confirmarAvisoLimite(WidgetTester tester) async {
+  await tester.pumpAndSettle();
+  if (find.text('Confirmar gasto').evaluate().isNotEmpty) {
+    await tester.tap(find.text('Confirmar gasto'));
+    await tester.pumpAndSettle();
+  }
+}
+
 double _leerGastos(WidgetTester tester) {
   final finder = find.textContaining('Gastos Bs ');
   expect(finder, findsOneWidget);
@@ -182,8 +190,9 @@ void main() {
     await _cerrarTeclado(tester);
     await tester.ensureVisible(find.text('Guardar'));
     await tester.tap(find.text('Guardar'));
+    await _confirmarAvisoLimite(tester);
 
-    await _esperarSinTexto(tester, 'Categoría');
+    await _esperarSinTexto(tester, 'Categor�a');
     await _esperarTexto(tester, 'Mis movimientos');
     final gastosDespues = await _esperarGastosMayores(tester, gastosAntes);
 
@@ -280,8 +289,9 @@ void main() {
     await _cerrarTeclado(tester);
     await tester.ensureVisible(find.text('Guardar'));
     await tester.tap(find.text('Guardar'));
+    await _confirmarAvisoLimite(tester);
 
-    await _esperarSinTexto(tester, 'Categoría');
+    await _esperarSinTexto(tester, 'Categor�a');
     await _esperarSinTexto(tester, 'Guardar');
     await _esperarTexto(tester, 'Mis movimientos');
     await _esperarSinSnackBar(tester);

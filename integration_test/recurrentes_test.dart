@@ -98,6 +98,14 @@ Future<double> _esperarGastosAlMenos(
   fail('El total de gastos no llegó a ${objetivo.toStringAsFixed(2)}.');
 }
 
+Future<void> _confirmarAvisoLimite(WidgetTester tester) async {
+  await tester.pumpAndSettle();
+  if (find.text('Confirmar gasto').evaluate().isNotEmpty) {
+    await tester.tap(find.text('Confirmar gasto'));
+    await tester.pumpAndSettle();
+  }
+}
+
 Future<void> _asegurarSesion(WidgetTester tester) async {
   await _esperarAlguno(tester, ['Iniciar sesión', 'Mis movimientos', 'Entrar']);
 
@@ -162,6 +170,7 @@ void main() {
     await tester.ensureVisible(find.text('Guardar'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Guardar'));
+    await _confirmarAvisoLimite(tester);
 
     await _esperarSinTexto(tester, 'Categoría');
     await _esperarSinTexto(tester, 'Guardar');
