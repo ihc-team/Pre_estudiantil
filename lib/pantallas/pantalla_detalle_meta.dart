@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 
-import '../configuracion/constantes.dart';
 import '../configuracion/rutas.dart';
+import '../configuracion/tema/app_tokens.dart';
 import '../modelos/meta_ahorro.dart';
+import '../servicios/analitica.dart';
 import '../servicios/servicio_acceso.dart';
 import '../servicios/servicio_metas.dart';
 import '../servicios/servicio_movimientos.dart';
 import '../widgets/mensajes.dart';
 import '../widgets/resumen_metas_card.dart';
-import '../servicios/analitica.dart';
 
 class PantallaDetalleMeta extends StatefulWidget {
   final MetaAhorro meta;
@@ -86,14 +86,17 @@ class _PantallaDetalleMetaState extends State<PantallaDetalleMeta> {
       context: context,
       builder: (contexto) => StatefulBuilder(
         builder: (contexto, setStateDialogo) => AlertDialog(
-          backgroundColor: Colors.white,
-          surfaceTintColor: Colors.transparent,
+          backgroundColor: AppColors.surface,
+          surfaceTintColor: AppColors.transparent,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(28),
+            borderRadius: BorderRadius.circular(AppRadius.modal),
           ),
           title: Text(
             titulo,
-            style: const TextStyle(color: Colores.azulOscuro),
+            style: AppTypography.titleMedium.copyWith(
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w700,
+            ),
           ),
           content: TextField(
             controller: controlador,
@@ -104,21 +107,28 @@ class _PantallaDetalleMetaState extends State<PantallaDetalleMeta> {
               hintText: pista,
               errorText: error,
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(AppRadius.card),
               ),
             ),
           ),
           actions: [
             TextButton(
+              style: TextButton.styleFrom(
+                minimumSize: const Size(0, AppSizes.touchTargetMin),
+              ),
               onPressed: () => Navigator.pop(contexto),
-              child: const Text(
+              child: Text(
                 'Cancelar',
-                style: TextStyle(color: Colores.verdeOscuro),
+                style: AppTypography.bodyMedium.copyWith(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
             FilledButton(
               style: FilledButton.styleFrom(
-                backgroundColor: Colores.verdeOscuro,
+                backgroundColor: AppColors.primary,
+                minimumSize: const Size(0, AppSizes.touchTargetMin),
               ),
               onPressed: () {
                 final monto = double.tryParse(
@@ -152,14 +162,17 @@ class _PantallaDetalleMetaState extends State<PantallaDetalleMeta> {
       context: context,
       builder: (contexto) => StatefulBuilder(
         builder: (contexto, setStateDialogo) => AlertDialog(
-          backgroundColor: Colors.white,
-          surfaceTintColor: Colors.transparent,
+          backgroundColor: AppColors.surface,
+          surfaceTintColor: AppColors.transparent,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(28),
+            borderRadius: BorderRadius.circular(AppRadius.modal),
           ),
-          title: const Text(
+          title: Text(
             'Transferir fondos',
-            style: TextStyle(color: Colores.azulOscuro),
+            style: AppTypography.titleMedium.copyWith(
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w700,
+            ),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -168,7 +181,7 @@ class _PantallaDetalleMetaState extends State<PantallaDetalleMeta> {
                 decoration: InputDecoration(
                   labelText: 'Meta destino',
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(AppRadius.card),
                   ),
                 ),
                 child: DropdownButtonHideUnderline(
@@ -188,7 +201,7 @@ class _PantallaDetalleMetaState extends State<PantallaDetalleMeta> {
                   ),
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
               TextField(
                 controller: controlador,
                 keyboardType: const TextInputType.numberWithOptions(
@@ -199,7 +212,7 @@ class _PantallaDetalleMetaState extends State<PantallaDetalleMeta> {
                   labelText: 'Monto (Bs)',
                   errorText: error,
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(AppRadius.card),
                   ),
                 ),
               ),
@@ -207,15 +220,22 @@ class _PantallaDetalleMetaState extends State<PantallaDetalleMeta> {
           ),
           actions: [
             TextButton(
+              style: TextButton.styleFrom(
+                minimumSize: const Size(0, AppSizes.touchTargetMin),
+              ),
               onPressed: () => Navigator.pop(contexto),
-              child: const Text(
+              child: Text(
                 'Cancelar',
-                style: TextStyle(color: Colores.verdeOscuro),
+                style: AppTypography.bodyMedium.copyWith(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
             FilledButton(
               style: FilledButton.styleFrom(
-                backgroundColor: Colores.verdeOscuro,
+                backgroundColor: AppColors.primary,
+                minimumSize: const Size(0, AppSizes.touchTargetMin),
               ),
               onPressed: () {
                 final monto = double.tryParse(
@@ -321,10 +341,11 @@ class _PantallaDetalleMetaState extends State<PantallaDetalleMeta> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text(_meta.nombre),
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colores.azulOscuro,
+        backgroundColor: AppColors.transparent,
+        foregroundColor: AppColors.textPrimary,
       ),
       body: SafeArea(child: _contenido()),
     );
@@ -333,28 +354,36 @@ class _PantallaDetalleMetaState extends State<PantallaDetalleMeta> {
   Widget _contenido() {
     if (_cargando) {
       return const Center(
-        child: CircularProgressIndicator(color: Colores.verdeOscuro),
+        child: CircularProgressIndicator(color: AppColors.primary),
       );
     }
 
     if (_error != null) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(AppSpacing.xxl),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 _error!,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: Colores.grisAzulado),
+                style: AppTypography.bodyMedium.copyWith(
+                  color: AppColors.textSecondary,
+                ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
               TextButton(
+                style: TextButton.styleFrom(
+                  minimumSize: const Size(0, AppSizes.touchTargetMin),
+                ),
                 onPressed: _cargar,
-                child: const Text(
+                child: Text(
                   'Reintentar',
-                  style: TextStyle(color: Colores.verdeOscuro),
+                  style: AppTypography.bodyMedium.copyWith(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ],
@@ -364,23 +393,27 @@ class _PantallaDetalleMetaState extends State<PantallaDetalleMeta> {
     }
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.xxl,
+        AppSpacing.sm,
+        AppSpacing.xxl,
+        AppSpacing.xxl,
+      ),
       children: [
         if (_resumen != null) ResumenMetasCard(resumen: _resumen!),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
         _tarjetaMeta(),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
         _acciones(),
-        const SizedBox(height: 24),
-        const Text(
+        const SizedBox(height: AppSpacing.xxl),
+        Text(
           'Historial',
-          style: TextStyle(
-            fontSize: 20,
+          style: AppTypography.titleLarge.copyWith(
             fontWeight: FontWeight.w700,
-            color: Colores.azulOscuro,
+            color: AppColors.textPrimary,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.sm),
         _historialWidget(),
       ],
     );
@@ -388,51 +421,56 @@ class _PantallaDetalleMetaState extends State<PantallaDetalleMeta> {
 
   Widget _tarjetaMeta() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: AppSpacing.paddingCard,
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colores.verdeClaro),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppRadius.card),
+        border: Border.all(color: AppColors.borderStrong),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             _meta.nombre,
-            style: const TextStyle(
-              fontSize: 22,
+            style: AppTypography.headlineMedium.copyWith(
               fontWeight: FontWeight.w800,
-              color: Colores.azulOscuro,
+              color: AppColors.textPrimary,
             ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: AppSpacing.xs),
           Text(
             'Objetivo: ${_meta.montoObjetivoTexto}',
-            style: const TextStyle(color: Colores.grisAzulado),
+            style: AppTypography.bodyMedium.copyWith(
+              color: AppColors.textSecondary,
+            ),
           ),
           Text(
             'Reservado: ${_meta.montoReservadoTexto}',
-            style: const TextStyle(
+            style: AppTypography.bodyMedium.copyWith(
               fontWeight: FontWeight.w600,
-              color: Colores.verdeOscuro,
+              color: AppColors.primary,
             ),
           ),
           Text(
             'Falta: ${_meta.restanteTexto}',
-            style: const TextStyle(color: Colores.grisAzulado),
+            style: AppTypography.bodyMedium.copyWith(
+              color: AppColors.textSecondary,
+            ),
           ),
           Text(
             'Fecha objetivo: ${_meta.fechaTexto}',
-            style: const TextStyle(color: Colores.grisAzulado),
+            style: AppTypography.bodyMedium.copyWith(
+              color: AppColors.textSecondary,
+            ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: AppSpacing.md),
           ClipRRect(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(AppRadius.sm),
             child: LinearProgressIndicator(
               value: _meta.progreso.clamp(0, 1).toDouble(),
               minHeight: 10,
-              color: Colores.verdeOscuro,
-              backgroundColor: Colores.verdeClaro,
+              color: AppColors.primary,
+              backgroundColor: AppColors.primaryContainer,
             ),
           ),
         ],
@@ -442,20 +480,24 @@ class _PantallaDetalleMetaState extends State<PantallaDetalleMeta> {
 
   Widget _acciones() {
     return Wrap(
-      spacing: 8,
-      runSpacing: 8,
+      spacing: AppSpacing.sm,
+      runSpacing: AppSpacing.sm,
       children: [
         FilledButton.icon(
           onPressed: _operando ? null : _asignar,
-          style: FilledButton.styleFrom(backgroundColor: Colores.verdeOscuro),
+          style: FilledButton.styleFrom(
+            backgroundColor: AppColors.primary,
+            minimumSize: const Size(0, AppSizes.touchTargetMin),
+          ),
           icon: const Icon(Icons.add),
           label: const Text('Asignar'),
         ),
         OutlinedButton.icon(
           onPressed: _operando ? null : _retirar,
           style: OutlinedButton.styleFrom(
-            foregroundColor: Colores.verdeOscuro,
-            side: const BorderSide(color: Colores.verdeOscuro),
+            foregroundColor: AppColors.primary,
+            side: const BorderSide(color: AppColors.primary),
+            minimumSize: const Size(0, AppSizes.touchTargetMin),
           ),
           icon: const Icon(Icons.remove),
           label: const Text('Retirar'),
@@ -463,8 +505,9 @@ class _PantallaDetalleMetaState extends State<PantallaDetalleMeta> {
         OutlinedButton.icon(
           onPressed: _operando ? null : _transferir,
           style: OutlinedButton.styleFrom(
-            foregroundColor: Colores.verdeOscuro,
-            side: const BorderSide(color: Colores.verdeOscuro),
+            foregroundColor: AppColors.primary,
+            side: const BorderSide(color: AppColors.primary),
+            minimumSize: const Size(0, AppSizes.touchTargetMin),
           ),
           icon: const Icon(Icons.swap_horiz),
           label: const Text('Transferir'),
@@ -475,9 +518,11 @@ class _PantallaDetalleMetaState extends State<PantallaDetalleMeta> {
 
   Widget _historialWidget() {
     if (_historial.isEmpty) {
-      return const Text(
+      return Text(
         'Aún no hay movimientos para esta meta.',
-        style: TextStyle(color: Colores.grisAzulado),
+        style: AppTypography.bodyMedium.copyWith(
+          color: AppColors.textSecondary,
+        ),
       );
     }
 
@@ -492,16 +537,16 @@ class _PantallaDetalleMetaState extends State<PantallaDetalleMeta> {
     final esEntrada =
         movimiento.tipo == 'asignacion' ||
         movimiento.tipo == 'transferencia_entrada';
-    final color = esEntrada ? Colores.verdeOscuro : Colores.rojo;
+    final color = esEntrada ? AppColors.primary : AppColors.error;
     final signo = esEntrada ? '+' : '-';
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colores.verdeClaro),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppRadius.card),
+        border: Border.all(color: AppColors.borderStrong),
       ),
       child: Row(
         children: [
@@ -509,31 +554,29 @@ class _PantallaDetalleMetaState extends State<PantallaDetalleMeta> {
             esEntrada ? Icons.add_circle_outline : Icons.remove_circle_outline,
             color: color,
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   movimiento.tipoTexto,
-                  style: const TextStyle(
+                  style: AppTypography.bodyMedium.copyWith(
                     fontWeight: FontWeight.w600,
-                    color: Colores.azulOscuro,
+                    color: AppColors.textPrimary,
                   ),
                 ),
                 if (movimiento.metaRelacionada != null)
                   Text(
                     'Meta: ${movimiento.metaRelacionada}',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Colores.grisAzulado,
+                    style: AppTypography.labelSmall.copyWith(
+                      color: AppColors.textSecondary,
                     ),
                   ),
                 Text(
                   movimiento.fechaTexto,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Colores.grisAzulado,
+                  style: AppTypography.labelSmall.copyWith(
+                    color: AppColors.textSecondary,
                   ),
                 ),
               ],
@@ -541,7 +584,10 @@ class _PantallaDetalleMetaState extends State<PantallaDetalleMeta> {
           ),
           Text(
             '$signo${movimiento.montoTexto}',
-            style: TextStyle(fontWeight: FontWeight.w700, color: color),
+            style: AppTypography.bodyLargeSemiBold.copyWith(
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
           ),
         ],
       ),
