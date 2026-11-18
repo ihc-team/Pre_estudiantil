@@ -74,7 +74,12 @@ void main() {
     await tester.enterText(camposLogin.at(1), _contrasena);
     await tester.pumpAndSettle();
 
-    // En la pantalla de login el botón de envío dice "Entrar"
+    // En la pantalla de login el botón de envío dice "Entrar".
+    // Cerramos el teclado para que no cubra el botón antes del tap.
+    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.pumpAndSettle(const Duration(milliseconds: 500));
+    await tester.ensureVisible(find.text('Entrar'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Entrar'));
     await tester.pumpAndSettle();
 
