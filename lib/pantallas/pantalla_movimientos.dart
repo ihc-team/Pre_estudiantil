@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import '../configuracion/constantes.dart';
 import '../configuracion/rutas.dart';
+import '../configuracion/tema/app_tokens.dart';
 import '../modelos/filtros.dart';
 import '../modelos/limite.dart';
 import '../modelos/meta_ahorro.dart';
@@ -19,8 +19,6 @@ import '../widgets/mensajes.dart';
 import 'pantalla_nuevo_movimiento.dart';
 import '../modelos/presupuesto_categoria.dart';
 import '../servicios/analitica.dart';
-
-import '../configuracion/constantes.dart';
 
 enum _VistaMovimientos { todos, pendientes, pagados, recurrentes }
 
@@ -212,28 +210,35 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
     final confirmado = await showDialog<bool>(
       context: context,
       builder: (contexto) => AlertDialog(
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.transparent,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-        title: Text(titulo, style: const TextStyle(color: Colores.azulOscuro)),
+        backgroundColor: AppColors.surface,
+        surfaceTintColor: AppColors.transparent,
+        shape: RoundedRectangleBorder(borderRadius: AppRadius.borderModal),
+        title: Text(
+          titulo,
+          style: AppTypography.titleMedium.copyWith(
+            color: AppColors.textPrimary,
+          ),
+        ),
         content: Text(
           mensaje,
-          style: const TextStyle(color: Colores.grisAzulado, height: 1.4),
+          style: AppTypography.bodyMedium.copyWith(
+            color: AppColors.textSecondary,
+            height: 1.4,
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(contexto, false),
             child: const Text(
               'Cancelar',
-              style: TextStyle(color: Colores.verdeOscuro),
+              style: TextStyle(color: AppColors.primary),
             ),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(contexto, true),
             style: FilledButton.styleFrom(
-              backgroundColor: esPeligro
-                  ? Colors.red.shade700
-                  : Colores.verdeOscuro,
+              backgroundColor:
+                  esPeligro ? AppColors.error : AppColors.primary,
             ),
             child: Text(textoConfirmar),
           ),
@@ -301,7 +306,8 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
   Future<void> _cerrarSesion() async {
     final confirmado = await _pedirConfirmacion(
       titulo: '¿Cerrar sesión?',
-      mensaje: '¿Deseas cerrar tu sesión? Tendrás que iniciar sesión de nuevo para entrar.',
+      mensaje:
+          '¿Deseas cerrar tu sesión? Tendrás que iniciar sesión de nuevo para entrar.',
       textoConfirmar: 'Cerrar sesión',
     );
     if (!confirmado || !mounted) return;
@@ -346,7 +352,7 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
     if (_nombre == null) {
       return const Scaffold(
         body: Center(
-          child: CircularProgressIndicator(color: Colores.verdeOscuro),
+          child: CircularProgressIndicator(color: AppColors.primary),
         ),
       );
     }
@@ -354,29 +360,31 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Mis movimientos'),
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colores.azulOscuro,
+        backgroundColor: AppColors.transparent,
+        foregroundColor: AppColors.textPrimary,
         actions: [
           // Fitts (Tarea 4): acceso visible y alcanzable al Historial
           TextButton.icon(
             onPressed: _abrirHistorial,
-            icon: const Icon(Icons.history, color: Colores.verdeOscuro),
+            icon: const Icon(Icons.history, color: AppColors.primary),
             label: const Text(
               'Historial',
-              style: TextStyle(color: Colores.verdeOscuro),
+              style: TextStyle(color: AppColors.primary),
             ),
-            style: TextButton.styleFrom(minimumSize: const Size(0, 48)),
+            style: TextButton.styleFrom(
+              minimumSize: const Size(0, AppSizes.touchTargetMin),
+            ),
           ),
           // H6.1: ícono + texto visible, sin depender del tooltip
           TextButton.icon(
             onPressed: _abrirLimite,
             icon: const Icon(
               Icons.savings_outlined,
-              color: Colores.verdeOscuro,
+              color: AppColors.primary,
             ),
             label: const Text(
               'Límite',
-              style: TextStyle(color: Colores.verdeOscuro),
+              style: TextStyle(color: AppColors.primary),
             ),
           ),
           // Analítica: acceso visible y alcanzable desde la app
@@ -384,22 +392,24 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
           //   onPressed: _abrirAnalitica,
           //   icon: const Icon(
           //     Icons.analytics_outlined,
-          //     color: Colores.verdeOscuro,
+          //     color: AppColors.primary,
           //   ),
           //   label: const Text(
           //     'Analítica',
-          //     style: TextStyle(color: Colores.verdeOscuro),
+          //     style: TextStyle(color: AppColors.primary),
           //   ),
-          //   style: TextButton.styleFrom(minimumSize: const Size(0, 48)),
+          //   style: TextButton.styleFrom(
+          //     minimumSize: const Size(0, AppSizes.touchTargetMin),
+          //   ),
           // ),
           IconButton(
             tooltip: 'Cerrar sesión',
-            icon: const Icon(Icons.logout, color: Colores.verdeOscuro),
+            icon: const Icon(Icons.logout, color: AppColors.primary),
             onPressed: _cerrarSesion,
           ),
           PopupMenuButton<String>(
             tooltip: 'Cuenta',
-            icon: const Icon(Icons.more_vert, color: Colores.verdeOscuro),
+            icon: const Icon(Icons.more_vert, color: AppColors.primary),
             onSelected: (valor) {
               if (valor == 'datos') {
                 unawaited(_abrirMisDatos());
@@ -415,13 +425,13 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
                     Icon(
                       Icons.folder_shared_outlined,
                       size: 20,
-                      color: Colores.azulOscuro,
+                      color: AppColors.textPrimary,
                     ),
-                    SizedBox(width: 10),
+                    SizedBox(width: AppSpacing.sm),
                     Text(
                       'Mis datos',
                       style: TextStyle(
-                        color: Colores.azulOscuro,
+                        color: AppColors.textPrimary,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -435,12 +445,12 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
                     Icon(
                       Icons.delete_outline,
                       size: 20,
-                      color: Colores.grisAzulado,
+                      color: AppColors.textSecondary,
                     ),
-                    SizedBox(width: 10),
+                    SizedBox(width: AppSpacing.sm),
                     Text(
                       'Eliminar cuenta',
-                      style: TextStyle(color: Colores.azulOscuro),
+                      style: TextStyle(color: AppColors.textPrimary),
                     ),
                   ],
                 ),
@@ -451,40 +461,43 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _abrirFormulario,
-        backgroundColor: Colores.verdeOscuro,
-        foregroundColor: Colors.white,
+        backgroundColor: AppColors.primary,
+        foregroundColor: AppColors.onPrimary,
         icon: const Icon(Icons.add),
         label: const Text('Nuevo movimiento'),
       ),
       body: Padding(
-        padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.xxl,
+          AppSpacing.sm,
+          AppSpacing.xxl,
+          0,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'Hola, $_nombre',
-              style: const TextStyle(
-                fontSize: 28,
+              style: AppTypography.headlineMedium.copyWith(
                 fontWeight: FontWeight.w800,
-                color: Colores.azulOscuro,
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             // Sin límite definido no se muestra
             if (_resumen?.tieneLimite ?? false) ...[
               _tarjetaLimite(_resumen!),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.lg),
             ],
             if (_resumenMetas != null) ...[
               _tarjetaMetas(),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.lg),
             ],
             _chipsVista(),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
             _barraBusqueda(),
             _filtrosActivos(),
             _lineaTotales(),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
             Expanded(child: _lista()),
           ],
         ),
@@ -508,15 +521,19 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
             alCambiar: _alEscribir,
           ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: AppSpacing.sm),
         IconButton(
           tooltip: 'Filtros',
           onPressed: _abrirFiltros,
           icon: Badge(
             isLabelVisible: cantidad > 0,
             label: Text('$cantidad'),
-            backgroundColor: Colores.verdeOscuro,
-            child: const Icon(Icons.tune, color: Colores.verdeOscuro, size: 28),
+            backgroundColor: AppColors.primary,
+            child: const Icon(
+              Icons.tune,
+              color: AppColors.primary,
+              size: 28,
+            ),
           ),
         ),
       ],
@@ -529,21 +546,21 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
     if (activos.isEmpty) return const SizedBox.shrink();
 
     return Padding(
-      padding: const EdgeInsets.only(top: 12),
+      padding: const EdgeInsets.only(top: AppSpacing.md),
       child: Wrap(
-        spacing: 8,
-        runSpacing: 4,
+        spacing: AppSpacing.sm,
+        runSpacing: AppSpacing.xs,
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
           for (final a in activos)
             InputChip(
               label: Text(a.texto),
               onDeleted: () => _quitarFiltro(a.clave),
-              backgroundColor: Colores.verdeClaro,
-              deleteIconColor: Colores.verdeOscuro,
+              backgroundColor: AppColors.primaryContainer,
+              deleteIconColor: AppColors.primary,
               side: BorderSide.none,
               labelStyle: const TextStyle(
-                color: Colores.verdeOscuro,
+                color: AppColors.primary,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -552,7 +569,7 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
               onPressed: _quitarTodos,
               child: const Text(
                 'Quitar todos',
-                style: TextStyle(color: Colores.verdeOscuro),
+                style: TextStyle(color: AppColors.primary),
               ),
             ),
         ],
@@ -596,7 +613,7 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
 
   Widget _chipsVista() {
     return Wrap(
-      spacing: 8,
+      spacing: AppSpacing.sm,
       children: [
         _chipVista('Todos', _VistaMovimientos.todos),
         _chipVista('Pendientes', _VistaMovimientos.pendientes),
@@ -612,14 +629,14 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
       label: Text(texto),
       selected: elegido,
       showCheckmark: false,
-      selectedColor: Colores.verdeClaro,
-      backgroundColor: Colors.white,
+      selectedColor: AppColors.primaryContainer,
+      backgroundColor: AppColors.surface,
       labelStyle: TextStyle(
-        color: elegido ? Colores.verdeOscuro : Colores.azulOscuro,
+        color: elegido ? AppColors.primary : AppColors.textPrimary,
         fontWeight: elegido ? FontWeight.w700 : FontWeight.w500,
       ),
       side: BorderSide(
-        color: elegido ? Colores.verdeOscuro : Colores.verdeClaro,
+        color: elegido ? AppColors.primary : AppColors.border,
       ),
       onSelected: (_) => setState(() => _vista = vista),
     );
@@ -631,30 +648,30 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
     if (_cargandoLista) return const SizedBox.shrink();
 
     return Padding(
-      padding: const EdgeInsets.only(top: 12),
+      padding: const EdgeInsets.only(top: AppSpacing.md),
       child: Wrap(
-        spacing: 16,
-        runSpacing: 4,
+        spacing: AppSpacing.lg,
+        runSpacing: AppSpacing.xs,
         children: [
           Text(
             '${t.cantidad} ${t.cantidad == 1 ? 'movimiento' : 'movimientos'}',
-            style: const TextStyle(
+            style: AppTypography.bodyLarge.copyWith(
               fontWeight: FontWeight.w700,
-              color: Colores.azulOscuro,
+              color: AppColors.textPrimary,
             ),
           ),
           Text(
             'Ingresos ${formatearBs(t.ingresos)}',
-            style: const TextStyle(
+            style: AppTypography.bodyLarge.copyWith(
               fontWeight: FontWeight.w600,
-              color: Colores.verdeOscuro,
+              color: AppColors.primary,
             ),
           ),
           Text(
             'Gastos ${formatearBs(t.gastos)}',
-            style: const TextStyle(
+            style: AppTypography.bodyLarge.copyWith(
               fontWeight: FontWeight.w600,
-              color: Colores.rojo,
+              color: AppColors.error,
             ),
           ),
         ],
@@ -665,7 +682,7 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
   Widget _lista() {
     if (_cargandoLista) {
       return const Center(
-        child: CircularProgressIndicator(color: Colores.verdeOscuro),
+        child: CircularProgressIndicator(color: AppColors.primary),
       );
     }
 
@@ -676,12 +693,11 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
+              Text(
                 'Ningún movimiento coincide\ncon la búsqueda o los filtros.',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colores.grisAzulado,
+                style: AppTypography.bodyLarge.copyWith(
+                  color: AppColors.textSecondary,
                   height: 1.5,
                 ),
               ),
@@ -689,7 +705,7 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
                 onPressed: _quitarTodos,
                 child: const Text(
                   'Quitar filtros',
-                  style: TextStyle(color: Colores.verdeOscuro),
+                  style: TextStyle(color: AppColors.primary),
                 ),
               ),
             ],
@@ -698,13 +714,12 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
       }
 
       if (_vista == _VistaMovimientos.recurrentes) {
-        return const Center(
+        return Center(
           child: Text(
             'No tienes gastos recurrentes.\nCrea uno desde Nuevo movimiento.',
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 16,
-              color: Colores.grisAzulado,
+            style: AppTypography.bodyLarge.copyWith(
+              color: AppColors.textSecondary,
               height: 1.5,
             ),
           ),
@@ -712,13 +727,12 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
       }
 
       if (_vista == _VistaMovimientos.pendientes) {
-        return const Center(
+        return Center(
           child: Text(
             'No tienes movimientos pendientes.',
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 16,
-              color: Colores.grisAzulado,
+            style: AppTypography.bodyLarge.copyWith(
+              color: AppColors.textSecondary,
               height: 1.5,
             ),
           ),
@@ -726,26 +740,24 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
       }
 
       if (_vista == _VistaMovimientos.pagados) {
-        return const Center(
+        return Center(
           child: Text(
             'No tienes movimientos pagados.',
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 16,
-              color: Colores.grisAzulado,
+            style: AppTypography.bodyLarge.copyWith(
+              color: AppColors.textSecondary,
               height: 1.5,
             ),
           ),
         );
       }
 
-      return const Center(
+      return Center(
         child: Text(
           'Aún no tienes movimientos.\nCrea el primero con el botón de abajo.',
           textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 16,
-            color: Colores.grisAzulado,
+          style: AppTypography.bodyLarge.copyWith(
+            color: AppColors.textSecondary,
             height: 1.5,
           ),
         ),
@@ -794,7 +806,7 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
       widgets.add(_encabezadoGrupo(grupo.key, grupo.value.length));
       for (final movimiento in grupo.value) {
         widgets.add(_tarjeta(movimiento));
-        widgets.add(const SizedBox(height: 12));
+        widgets.add(const SizedBox(height: AppSpacing.md));
       }
     }
 
@@ -806,13 +818,16 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
 
   Widget _encabezadoGrupo(String titulo, int cantidad) {
     return Padding(
-      padding: const EdgeInsets.only(top: 16, bottom: 8, left: 4),
+      padding: const EdgeInsets.only(
+        top: AppSpacing.lg,
+        bottom: AppSpacing.sm,
+        left: AppSpacing.xs,
+      ),
       child: Text(
         '$titulo ($cantidad)',
-        style: const TextStyle(
-          fontSize: 16,
+        style: AppTypography.bodyLargeSemiBold.copyWith(
           fontWeight: FontWeight.w700,
-          color: Colores.azulOscuro,
+          color: AppColors.textPrimary,
         ),
       ),
     );
@@ -821,26 +836,26 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
   Widget _tarjetaMetas() {
     final resumen = _resumenMetas!;
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: AppSpacing.paddingCard,
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colores.verdeClaro),
+        color: AppColors.surface,
+        borderRadius: AppRadius.borderCard,
+        border: Border.all(color: AppColors.borderStrong),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Icons.savings_outlined, color: Colores.verdeOscuro),
-              const SizedBox(width: 8),
+              const Icon(Icons.savings_outlined, color: AppColors.primary),
+              const SizedBox(width: AppSpacing.sm),
               const Expanded(
                 child: Text(
                   'Metas de ahorro',
                   style: TextStyle(
+                    color: AppColors.textPrimary,
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
-                    color: Colores.azulOscuro,
                   ),
                 ),
               ),
@@ -848,24 +863,24 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
                 onPressed: _abrirMetas,
                 child: const Text(
                   'Ver metas',
-                  style: TextStyle(color: Colores.verdeOscuro),
+                  style: TextStyle(color: AppColors.primary),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: AppSpacing.xs),
           Text(
             'Disponible ${resumen.disponibleTexto}',
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: Colores.verdeOscuro,
+            style: AppTypography.bodyLargeSemiBold.copyWith(
+              color: AppColors.primary,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: AppSpacing.xs),
           Text(
             'Reservado ${resumen.reservadoTexto}',
-            style: const TextStyle(color: Colores.grisAzulado),
+            style: AppTypography.bodyMedium.copyWith(
+              color: AppColors.textSecondary,
+            ),
           ),
         ],
       ),
@@ -873,56 +888,57 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
   }
 
   Widget _tarjetaLimite(ResumenLimite r) {
-    final color = r.enAviso ? Colores.aviso : Colores.verdeOscuro;
+    final color = r.enAviso ? AppColors.statusWarning : AppColors.primary;
+    final borderColor =
+        r.enAviso ? AppColors.statusWarning : AppColors.borderStrong;
     final restante = r.restante!;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: AppSpacing.paddingCard,
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: r.enAviso ? Colores.aviso : Colores.verdeClaro,
-        ),
+        color: AppColors.surface,
+        borderRadius: AppRadius.borderCard,
+        border: Border.all(color: borderColor),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'Gastado ${formatearBs(r.gastado)} de ${formatearBs(r.limite!)}',
-            style: const TextStyle(
-              fontSize: 16,
+            style: AppTypography.bodyLargeSemiBold.copyWith(
               fontWeight: FontWeight.w700,
-              color: Colores.azulOscuro,
+              color: AppColors.textPrimary,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.sm),
           ClipRRect(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: AppRadius.borderSm,
             child: LinearProgressIndicator(
               value: r.proporcion,
               minHeight: 8,
               color: color,
-              backgroundColor: Colores.verdeClaro,
+              backgroundColor: AppColors.primaryContainer,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.sm),
           Text(
             restante >= 0
                 ? 'Te quedan ${formatearBs(restante)}'
                 : 'Te pasaste por ${formatearBs(-restante)}',
-            style: TextStyle(fontWeight: FontWeight.w600, color: color),
+            style: AppTypography.bodyMedium.copyWith(
+              fontWeight: FontWeight.w600,
+              color: color,
+            ),
           ),
 
           // Lanza aviso por categoria
           for (final cat in _categorias.where((c) => c.excedido)) ...[
-            const SizedBox(height: 6),
+            const SizedBox(height: AppSpacing.xs),
             Text(
               'Atencion: Te pasaste en ${cat.categoria} por ${formatearBs(-cat.restante!)}',
-              style: const TextStyle(
-                fontSize: 13,
+              style: AppTypography.labelSmall.copyWith(
                 fontWeight: FontWeight.w600,
-                color: Colors.red,
+                color: AppColors.error,
               ),
             ),
           ],
@@ -935,11 +951,11 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
     final pagado = m.estado == EstadoMovimiento.pagado;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: AppSpacing.paddingCard,
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colores.verdeClaro),
+        color: AppColors.surface,
+        borderRadius: AppRadius.borderCard,
+        border: Border.all(color: AppColors.borderStrong),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -949,65 +965,69 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
               Expanded(
                 child: Text(
                   m.concepto,
-                  style: const TextStyle(
-                    fontSize: 18,
+                  style: AppTypography.titleMedium.copyWith(
                     fontWeight: FontWeight.w700,
-                    color: Colores.azulOscuro,
                   ),
                 ),
               ),
               Text(
                 m.montoTexto,
                 // H4.2: verde para ingresos y rojo para gastos, igual que los totales
-                style: TextStyle(
-                  fontSize: 18,
+                style: AppTypography.titleMedium.copyWith(
                   fontWeight: FontWeight.w700,
-                  color: m.esIngreso ? Colores.verdeOscuro : Colores.rojo,
+                  color: m.esIngreso ? AppColors.primary : AppColors.error,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: AppSpacing.xs),
           Text(
             '${m.tipo.texto} · ${m.categoria.texto} · ${m.fechaTexto}',
-            style: const TextStyle(color: Colores.grisAzulado),
+            style: AppTypography.bodyMedium.copyWith(
+              color: AppColors.textSecondary,
+            ),
           ),
           if (m.recurrente) ...[
-            const SizedBox(height: 6),
+            const SizedBox(height: AppSpacing.xs),
             Row(
               children: [
-                const Icon(Icons.repeat, size: 16, color: Colores.verdeOscuro),
-                const SizedBox(width: 4),
+                const Icon(
+                  Icons.repeat,
+                  size: 16,
+                  color: AppColors.primary,
+                ),
+                const SizedBox(width: AppSpacing.xs),
                 Text(
                   m.recurrenciaTexto,
-                  style: const TextStyle(
-                    fontSize: 13,
+                  style: AppTypography.labelSmall.copyWith(
                     fontWeight: FontWeight.w600,
-                    color: Colores.verdeOscuro,
+                    color: AppColors.primary,
                   ),
                 ),
               ],
             ),
           ],
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           Row(
             children: [
               Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
+                  horizontal: AppSpacing.md,
+                  vertical: AppSpacing.xs,
                 ),
                 decoration: BoxDecoration(
-                  color: pagado ? Colores.verdeClaro : const Color(0xFFFFE9C7),
-                  borderRadius: BorderRadius.circular(20),
+                  color: pagado
+                      ? AppColors.statusNormalContainer
+                      : AppColors.statusWarningContainer,
+                  borderRadius: AppRadius.borderPill,
                 ),
                 child: Text(
                   m.estadoTexto,
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
                     color: pagado
-                        ? Colores.verdeOscuro
-                        : const Color(0xFF8A5A00),
+                        ? AppColors.statusNormal
+                        : AppColors.statusWarning,
                   ),
                 ),
               ),
@@ -1017,14 +1037,17 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
                 tooltip: 'Editar',
                 icon: const Icon(
                   Icons.edit_outlined,
-                  color: Colores.verdeOscuro,
+                  color: AppColors.primary,
                 ),
                 onPressed: () => _editar(m),
               ),
               IconButton(
                 key: ValueKey('eliminar-${m.concepto}'),
                 tooltip: 'Eliminar',
-                icon: Icon(Icons.delete_outline, color: Colors.red.shade700),
+                icon: const Icon(
+                  Icons.delete_outline,
+                  color: AppColors.error,
+                ),
                 onPressed: () => _eliminar(m),
               ),
             ],
@@ -1035,7 +1058,7 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
               onPressed: () => _marcarComoPagado(m),
               child: Text(
                 m.accionMarcarTexto,
-                style: const TextStyle(color: Colores.verdeOscuro),
+                style: const TextStyle(color: AppColors.primary),
               ),
             ),
         ],
@@ -1052,7 +1075,8 @@ class _DialogoConfirmarEliminar extends StatefulWidget {
       _DialogoConfirmarEliminarState();
 }
 
-class _DialogoConfirmarEliminarState extends State<_DialogoConfirmarEliminar> {
+class _DialogoConfirmarEliminarState
+    extends State<_DialogoConfirmarEliminar> {
   late final TextEditingController _controlador;
   String? _error;
 
@@ -1071,18 +1095,18 @@ class _DialogoConfirmarEliminarState extends State<_DialogoConfirmarEliminar> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      backgroundColor: Colors.white,
-      surfaceTintColor: Colors.transparent,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      backgroundColor: AppColors.surface,
+      surfaceTintColor: AppColors.transparent,
+      shape: RoundedRectangleBorder(borderRadius: AppRadius.borderModal),
       title: Row(
         children: const [
-          Icon(Icons.info_outline, color: Colores.azulOscuro, size: 24),
-          SizedBox(width: 8),
+          Icon(Icons.info_outline, color: AppColors.textPrimary, size: 24),
+          SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Text(
               'Eliminar cuenta y datos',
               style: TextStyle(
-                color: Colores.azulOscuro,
+                color: AppColors.textPrimary,
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
@@ -1095,34 +1119,33 @@ class _DialogoConfirmarEliminarState extends State<_DialogoConfirmarEliminar> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Esta acción eliminará de forma permanente tu cuenta, todos tus movimientos, metas y presupuestos.',
-              style: TextStyle(
-                color: Colores.azulOscuro,
+              style: AppTypography.bodyMedium.copyWith(
+                color: AppColors.textPrimary,
                 height: 1.4,
-                fontSize: 14,
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: AppSpacing.sm),
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(AppSpacing.md),
               decoration: BoxDecoration(
-                color: Colores.verdeClaro.withValues(alpha: 0.5),
-                borderRadius: BorderRadius.circular(12),
+                color: AppColors.primaryContainer.withValues(alpha: 0.5),
+                borderRadius: AppRadius.borderSm,
               ),
               child: Row(
                 children: const [
                   Icon(
                     Icons.download_rounded,
-                    color: Colores.verdeOscuro,
+                    color: AppColors.primary,
                     size: 20,
                   ),
-                  SizedBox(width: 8),
+                  SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: Text(
                       'Te recomendamos descargar una copia de tus datos antes de continuar.',
                       style: TextStyle(
-                        color: Colores.verdeOscuro,
+                        color: AppColors.primary,
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                       ),
@@ -1131,12 +1154,14 @@ class _DialogoConfirmarEliminarState extends State<_DialogoConfirmarEliminar> {
                 ],
               ),
             ),
-            const SizedBox(height: 16),
-            const Text(
+            const SizedBox(height: AppSpacing.lg),
+            Text(
               'Para confirmar, escribe tu contraseña:',
-              style: TextStyle(color: Colores.grisAzulado, fontSize: 13),
+              style: AppTypography.labelSmall.copyWith(
+                color: AppColors.textSecondary,
+              ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
             TextField(
               controller: _controlador,
               obscureText: true,
@@ -1145,26 +1170,31 @@ class _DialogoConfirmarEliminarState extends State<_DialogoConfirmarEliminar> {
                 labelText: 'Contraseña actual',
                 errorText: _error,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: AppRadius.borderSm,
                 ),
               ),
             ),
           ],
         ),
       ),
-      actionsPadding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+      actionsPadding: const EdgeInsets.fromLTRB(
+        AppSpacing.xl,
+        0,
+        AppSpacing.xl,
+        AppSpacing.xl,
+      ),
       actions: [
         Row(
           children: [
             Expanded(
               child: SizedBox(
-                height: 48,
+                height: AppSizes.touchTargetMin,
                 child: OutlinedButton(
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: Colores.azulOscuro,
+                    foregroundColor: AppColors.textPrimary,
                     side: BorderSide.none,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: AppRadius.borderSm,
                     ),
                   ),
                   onPressed: () => Navigator.pop(context),
@@ -1172,22 +1202,22 @@ class _DialogoConfirmarEliminarState extends State<_DialogoConfirmarEliminar> {
                     'Cancelar',
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
-                      color: Colores.verdeOscuro,
+                      color: AppColors.primary,
                     ),
                   ),
                 ),
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: AppSpacing.md),
             Expanded(
               child: SizedBox(
-                height: 48,
+                height: AppSizes.touchTargetMin,
                 child: FilledButton(
                   style: FilledButton.styleFrom(
-                    backgroundColor: Colores.verdeOscuro,
-                    foregroundColor: Colors.white,
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: AppColors.onPrimary,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: AppRadius.borderSm,
                     ),
                   ),
                   onPressed: () {
