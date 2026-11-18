@@ -410,11 +410,18 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
                 value: 'datos',
                 child: Row(
                   children: [
-                    Icon(Icons.folder_shared_outlined, size: 20, color: Colores.azulOscuro),
+                    Icon(
+                      Icons.folder_shared_outlined,
+                      size: 20,
+                      color: Colores.azulOscuro,
+                    ),
                     SizedBox(width: 10),
                     Text(
                       'Mis datos',
-                      style: TextStyle(color: Colores.azulOscuro, fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        color: Colores.azulOscuro,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ],
                 ),
@@ -423,7 +430,11 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
                 value: 'eliminar',
                 child: Row(
                   children: [
-                    Icon(Icons.delete_outline, size: 20, color: Colores.grisAzulado),
+                    Icon(
+                      Icons.delete_outline,
+                      size: 20,
+                      color: Colores.grisAzulado,
+                    ),
                     SizedBox(width: 10),
                     Text(
                       'Eliminar cuenta',
@@ -443,38 +454,35 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
         icon: const Icon(Icons.add),
         label: const Text('Nuevo movimiento'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Hola, $_nombre',
-              style: const TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.w800,
-                color: Colores.azulOscuro,
-              ),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(24, 8, 24, 96),
+        children: [
+          Text(
+            'Hola, $_nombre',
+            style: const TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.w800,
+              color: Colores.azulOscuro,
             ),
+          ),
+          const SizedBox(height: 16),
+          // Sin limite definido no se muestra
+          if (_resumen?.tieneLimite ?? false) ...[
+            _tarjetaLimite(_resumen!),
             const SizedBox(height: 16),
-            // Sin límite definido no se muestra
-            if (_resumen?.tieneLimite ?? false) ...[
-              _tarjetaLimite(_resumen!),
-              const SizedBox(height: 16),
-            ],
-            if (_resumenMetas != null) ...[
-              _tarjetaMetas(),
-              const SizedBox(height: 16),
-            ],
-            _chipsVista(),
-            const SizedBox(height: 8),
-            _barraBusqueda(),
-            _filtrosActivos(),
-            _lineaTotales(),
-            const SizedBox(height: 12),
-            Expanded(child: _lista()),
           ],
-        ),
+          if (_resumenMetas != null) ...[
+            _tarjetaMetas(),
+            const SizedBox(height: 16),
+          ],
+          _chipsVista(),
+          const SizedBox(height: 8),
+          _barraBusqueda(),
+          _filtrosActivos(),
+          _lineaTotales(),
+          const SizedBox(height: 12),
+          ..._elementosLista(),
+        ],
       ),
     );
   }
@@ -649,22 +657,58 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
     );
   }
 
-  Widget _lista() {
+  List<Widget> _elementosLista() {
     if (_cargandoLista) {
-      return const Center(
-        child: CircularProgressIndicator(color: Colores.verdeOscuro),
-      );
+      return const [
+        Padding(
+          padding: EdgeInsets.symmetric(vertical: 48),
+          child: Center(
+            child: CircularProgressIndicator(color: Colores.verdeOscuro),
+          ),
+        ),
+      ];
     }
 
     final movimientos = _visibles;
     if (movimientos.isEmpty) {
       if (_filtros.hayFiltros) {
-        return Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'Ningún movimiento coincide\ncon la búsqueda o los filtros.',
+        return [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 36),
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'Ningún movimiento coincide\ncon la búsqueda o los filtros.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colores.grisAzulado,
+                      height: 1.5,
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: _quitarTodos,
+                    child: const Text(
+                      'Quitar filtros',
+                      style: TextStyle(color: Colores.verdeOscuro),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ];
+      }
+
+      if (_vista == _VistaMovimientos.recurrentes) {
+        return const [
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: 36),
+            child: Center(
+              child: Text(
+                'No tienes gastos recurrentes.\nCrea uno desde Nuevo movimiento.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 16,
@@ -672,71 +716,65 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
                   height: 1.5,
                 ),
               ),
-              TextButton(
-                onPressed: _quitarTodos,
-                child: const Text(
-                  'Quitar filtros',
-                  style: TextStyle(color: Colores.verdeOscuro),
-                ),
-              ),
-            ],
-          ),
-        );
-      }
-
-      if (_vista == _VistaMovimientos.recurrentes) {
-        return const Center(
-          child: Text(
-            'No tienes gastos recurrentes.\nCrea uno desde Nuevo movimiento.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 16,
-              color: Colores.grisAzulado,
-              height: 1.5,
             ),
           ),
-        );
+        ];
       }
 
       if (_vista == _VistaMovimientos.pendientes) {
-        return const Center(
-          child: Text(
-            'No tienes movimientos pendientes.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 16,
-              color: Colores.grisAzulado,
-              height: 1.5,
+        return const [
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: 36),
+            child: Center(
+              child: Text(
+                'No tienes movimientos pendientes.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colores.grisAzulado,
+                  height: 1.5,
+                ),
+              ),
             ),
           ),
-        );
+        ];
       }
 
       if (_vista == _VistaMovimientos.pagados) {
-        return const Center(
-          child: Text(
-            'No tienes movimientos pagados.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 16,
-              color: Colores.grisAzulado,
-              height: 1.5,
+        return const [
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: 36),
+            child: Center(
+              child: Text(
+                'No tienes movimientos pagados.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colores.grisAzulado,
+                  height: 1.5,
+                ),
+              ),
             ),
           ),
-        );
+        ];
       }
 
-      return const Center(
-        child: Text(
-          'Aún no tienes movimientos.\nCrea el primero con el botón de abajo.',
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 16,
-            color: Colores.grisAzulado,
-            height: 1.5,
+      return const [
+        Padding(
+          padding: EdgeInsets.symmetric(vertical: 36),
+          child: Center(
+            child: Text(
+              'Aún no tienes movimientos.\nCrea el primero con el botón de abajo.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 16,
+                color: Colores.grisAzulado,
+                height: 1.5,
+              ),
+            ),
           ),
         ),
-      );
+      ];
     }
 
     final ahora = DateTime.now();
@@ -785,10 +823,7 @@ class _PantallaMovimientosState extends State<PantallaMovimientos> {
       }
     }
 
-    return ListView(
-      padding: const EdgeInsets.only(bottom: 96),
-      children: widgets,
-    );
+    return widgets;
   }
 
   Widget _encabezadoGrupo(String titulo, int cantidad) {
@@ -1035,7 +1070,8 @@ class _DialogoConfirmarEliminar extends StatefulWidget {
   const _DialogoConfirmarEliminar();
 
   @override
-  State<_DialogoConfirmarEliminar> createState() => _DialogoConfirmarEliminarState();
+  State<_DialogoConfirmarEliminar> createState() =>
+      _DialogoConfirmarEliminarState();
 }
 
 class _DialogoConfirmarEliminarState extends State<_DialogoConfirmarEliminar> {
@@ -1059,9 +1095,7 @@ class _DialogoConfirmarEliminarState extends State<_DialogoConfirmarEliminar> {
     return AlertDialog(
       backgroundColor: Colors.white,
       surfaceTintColor: Colors.transparent,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(24),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       title: Row(
         children: const [
           Icon(Icons.info_outline, color: Colores.azulOscuro, size: 24),
@@ -1085,7 +1119,11 @@ class _DialogoConfirmarEliminarState extends State<_DialogoConfirmarEliminar> {
           children: [
             const Text(
               'Esta acción eliminará de forma permanente tu cuenta, todos tus movimientos, metas y presupuestos.',
-              style: TextStyle(color: Colores.azulOscuro, height: 1.4, fontSize: 14),
+              style: TextStyle(
+                color: Colores.azulOscuro,
+                height: 1.4,
+                fontSize: 14,
+              ),
             ),
             const SizedBox(height: 10),
             Container(
@@ -1096,12 +1134,20 @@ class _DialogoConfirmarEliminarState extends State<_DialogoConfirmarEliminar> {
               ),
               child: Row(
                 children: const [
-                  Icon(Icons.download_rounded, color: Colores.verdeOscuro, size: 20),
+                  Icon(
+                    Icons.download_rounded,
+                    color: Colores.verdeOscuro,
+                    size: 20,
+                  ),
                   SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       'Te recomendamos descargar una copia de tus datos antes de continuar.',
-                      style: TextStyle(color: Colores.verdeOscuro, fontSize: 12, fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        color: Colores.verdeOscuro,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ],
@@ -1144,7 +1190,10 @@ class _DialogoConfirmarEliminarState extends State<_DialogoConfirmarEliminar> {
                     ),
                   ),
                   onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancelar', style: TextStyle(fontWeight: FontWeight.w600)),
+                  child: const Text(
+                    'Cancelar',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
                 ),
               ),
             ),
@@ -1167,7 +1216,10 @@ class _DialogoConfirmarEliminarState extends State<_DialogoConfirmarEliminar> {
                     }
                     Navigator.pop(context, _controlador.text);
                   },
-                  child: const Text('Eliminar', style: TextStyle(fontWeight: FontWeight.w600)),
+                  child: const Text(
+                    'Eliminar',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
                 ),
               ),
             ),
