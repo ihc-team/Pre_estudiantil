@@ -127,10 +127,4 @@ jobs:
           profile: pixel_6
           disable-animations: true
           emulator-boot-timeout: 900
-          script: |
-            nohup node servidor/servidor.js > api.log 2>&1 &
-            for i in {1..30}; do
-              if curl -fsS http://127.0.0.1:3000/ping >/dev/null; then break; fi
-              sleep 2
-            done
-            flutter test integration_test -d emulator-5554 --reporter expanded
+          script: nohup node servidor/servidor.js > api.log 2>&1 & sleep 5; for i in $(seq 1 30); do curl -fsS http://127.0.0.1:3000/ping >/dev/null && break; sleep 2; done; flutter test integration_test -d emulator-5554 --reporter expanded
