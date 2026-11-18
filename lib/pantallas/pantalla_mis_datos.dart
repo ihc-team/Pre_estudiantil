@@ -3,13 +3,13 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../configuracion/constantes.dart';
 import '../configuracion/rutas.dart';
+import '../configuracion/tema/app_tokens.dart';
 import '../servicios/analitica.dart';
 import '../servicios/servicio_acceso.dart';
 import '../servicios/servicio_cuenta.dart';
 import '../servicios/servicio_movimientos.dart';
-import '../widgets/boton_pildora.dart';
+import '../widgets/app_button.dart';
 import '../widgets/mensajes.dart';
 
 class PantallaMisDatos extends StatefulWidget {
@@ -92,223 +92,200 @@ class _PantallaMisDatosState extends State<PantallaMisDatos> {
   Widget build(BuildContext context) {
     final movimientos = (_datos?['movimientos'] as List?) ?? [];
     final metas = (_datos?['metas'] as List?) ?? [];
-    final presupuestos = (_datos?['presupuestosCategorias'] as List?) ?? [];
+    final presupuestos =
+        (_datos?['presupuestosCategorias'] as List?) ?? [];
     final usuario = _datos?['usuario'] as Map<String, dynamic>? ?? {};
 
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Mis datos y cuenta'),
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colores.azulOscuro,
+        title: Text(
+          'Mis datos y cuenta',
+          style: AppTypography.titleLarge,
+        ),
+        backgroundColor: AppColors.transparent,
+        foregroundColor: AppColors.textPrimary,
       ),
       body: SafeArea(
         child: _cargando
             ? const Center(
-                child: CircularProgressIndicator(color: Colores.verdeOscuro),
+                child: CircularProgressIndicator(color: AppColors.primary),
               )
             : _error != null
             ? Center(
                 child: Padding(
-                  padding: const EdgeInsets.all(24),
+                  padding: AppSpacing.paddingModal,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const Icon(
                         Icons.error_outline,
                         size: 48,
-                        color: Colores.rojo,
+                        color: AppColors.error,
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: AppSpacing.md),
                       Text(
                         _error!,
-                        style: const TextStyle(color: Colores.grisAzulado),
-                      ),
-                      const SizedBox(height: 16),
-                      FilledButton.icon(
-                        onPressed: _cargarDatos,
-                        icon: const Icon(Icons.refresh),
-                        label: const Text('Reintentar'),
-                        style: FilledButton.styleFrom(
-                          backgroundColor: Colores.verdeOscuro,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
+                        style: AppTypography.bodyLarge.copyWith(
+                          color: AppColors.textSecondary,
                         ),
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+                      AppButton.primary(
+                        leadingIcon: Icons.refresh,
+                        showTrailingIcon: false,
+                        size: AppButtonSize.medium,
+                        label: 'Reintentar',
+                        onPressed: _cargarDatos,
                       ),
                     ],
                   ),
                 ),
               )
             : ListView(
-                padding: const EdgeInsets.all(24),
+                padding: AppSpacing.paddingModal,
                 children: [
-                  const Text(
+                  Text(
                     'Transparencia y control de tus datos',
-                    style: TextStyle(
-                      fontSize: 20,
+                    style: AppTypography.titleLarge.copyWith(
                       fontWeight: FontWeight.w800,
-                      color: Colores.azulOscuro,
                     ),
                   ),
-                  const SizedBox(height: 6),
-                  const Text(
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
                     'Aquí puedes revisar toda la informacion registrada en tu cuenta y descargar una copia en formato JSON en cualquier momento.',
-                    style: TextStyle(
-                      color: Colores.grisAzulado,
+                    style: AppTypography.bodyMedium.copyWith(
+                      color: AppColors.textSecondary,
                       height: 1.4,
-                      fontSize: 14,
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: AppSpacing.xl),
 
                   // Tarjeta de perfil
                   Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: AppSpacing.paddingCard,
                     decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colores.verdeClaro),
+                      color: AppColors.surface,
+                      borderRadius: AppRadius.borderCard,
+                      border: Border.all(color: AppColors.borderStrong),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           usuario['nombre']?.toString() ?? 'Usuario',
-                          style: const TextStyle(
-                            fontSize: 18,
+                          style: AppTypography.titleMedium.copyWith(
                             fontWeight: FontWeight.bold,
-                            color: Colores.azulOscuro,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: AppSpacing.xs),
                         Text(
                           usuario['correo']?.toString() ?? '',
-                          style: const TextStyle(
-                            color: Colores.grisAzulado,
-                            fontSize: 14,
+                          style: AppTypography.bodyMedium.copyWith(
+                            color: AppColors.textSecondary,
                           ),
                         ),
                         if (usuario['miembroDesde'] != null) ...[
-                          const SizedBox(height: 4),
+                          const SizedBox(height: AppSpacing.xs),
                           Text(
                             'Miembro desde: ${usuario['miembroDesde']}',
-                            style: const TextStyle(
-                              color: Colores.grisAzulado,
-                              fontSize: 12,
+                            style: AppTypography.labelSmall.copyWith(
+                              color: AppColors.textSecondary,
                             ),
                           ),
                         ],
                       ],
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.lg),
 
                   // Resumen de registros almacenados
-                  const Text(
+                  Text(
                     'Registros vinculados a tu cuenta',
-                    style: TextStyle(
-                      fontSize: 16,
+                    style: AppTypography.bodyLargeSemiBold.copyWith(
                       fontWeight: FontWeight.w700,
-                      color: Colores.azulOscuro,
+                      color: AppColors.textPrimary,
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.md),
                   _tarjetaResumen(
                     titulo: 'Movimientos financieros',
                     subtitulo: 'Gastos e ingresos registrados',
                     cantidad: movimientos.length,
                     icono: Icons.receipt_long_outlined,
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppSpacing.sm),
                   _tarjetaResumen(
                     titulo: 'Metas de ahorro',
                     subtitulo: 'Objetivos y fondos reservados',
                     cantidad: metas.length,
                     icono: Icons.flag_outlined,
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppSpacing.sm),
                   _tarjetaResumen(
                     titulo: 'Presupuestos por categoría',
                     subtitulo: 'Límites mensuales asignados',
                     cantidad: presupuestos.length,
                     icono: Icons.tune_outlined,
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: AppSpacing.xxl),
 
-                  // Boton para descargar datos
+                  // Botón para descargar datos
                   SizedBox(
-                    height: 48,
-                    child: FilledButton.icon(
+                    height: AppSizes.touchTargetMin,
+                    child: AppButton.primary(
+                      leadingIcon: _descargando ? null : Icons.download_rounded,
+                      showTrailingIcon: false,
+                      size: AppButtonSize.medium,
+                      isLoading: _descargando,
+                      label: 'Descargar mis datos (JSON)',
                       onPressed: _descargando ? null : _descargarJson,
-                      icon: _descargando
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : const Icon(Icons.download_rounded),
-                      label: const Text(
-                        'Descargar mis datos (JSON)',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      style: FilledButton.styleFrom(
-                        backgroundColor: Colores.verdeOscuro,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
                     ),
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: AppSpacing.xxxl),
 
                   // Zona de salida honesta, que es la eliminacion
-                  const Divider(color: Colores.verdeClaro),
-                  const SizedBox(height: 16),
-                  const Text(
+                  const Divider(color: AppColors.border),
+                  const SizedBox(height: AppSpacing.lg),
+                  Text(
                     'Zona de cierre de cuenta',
-                    style: TextStyle(
-                      fontSize: 16,
+                    style: AppTypography.bodyLargeSemiBold.copyWith(
                       fontWeight: FontWeight.w700,
-                      color: Colores.azulOscuro,
+                      color: AppColors.textPrimary,
                     ),
                   ),
-                  const SizedBox(height: 6),
-                  const Text(
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
                     'Si decides marcharte, respetamos tu decisión. Puedes eliminar tu cuenta de forma permanente y llevarte tus datos.',
-                    style: TextStyle(
-                      color: Colores.grisAzulado,
+                    style: AppTypography.labelSmall.copyWith(
+                      color: AppColors.textSecondary,
                       height: 1.4,
-                      fontSize: 13,
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.md),
                   OutlinedButton.icon(
                     onPressed: () {
                       Navigator.pop(context, 'solicitar_eliminar');
                     },
                     icon: const Icon(
                       Icons.delete_outline,
-                      color: Colores.azulOscuro,
+                      color: AppColors.textPrimary,
                     ),
-                    label: const Text(
+                    label: Text(
                       'Eliminar mi cuenta y datos',
-                      style: TextStyle(
-                        color: Colores.azulOscuro,
+                      style: AppTypography.bodyMedium.copyWith(
+                        color: AppColors.textPrimary,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                     style: OutlinedButton.styleFrom(
-                      minimumSize: const Size(double.infinity, 48),
-                      side: const BorderSide(color: Colores.grisAzulado),
+                      minimumSize: const Size(
+                        double.infinity,
+                        AppSizes.touchTargetMin,
+                      ),
+                      side: const BorderSide(color: AppColors.textSecondary),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: AppRadius.borderCard,
                       ),
                     ),
                   ),
@@ -325,50 +302,53 @@ class _PantallaMisDatosState extends State<PantallaMisDatos> {
     required IconData icono,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.md,
+      ),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colores.verdeClaro),
+        color: AppColors.surface,
+        borderRadius: AppRadius.borderCard,
+        border: Border.all(color: AppColors.borderStrong),
       ),
       child: Row(
         children: [
-          Icon(icono, color: Colores.verdeOscuro, size: 24),
-          const SizedBox(width: 12),
+          Icon(icono, color: AppColors.primary, size: 24),
+          const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   titulo,
-                  style: const TextStyle(
+                  style: AppTypography.bodyMedium.copyWith(
                     fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                    color: Colores.azulOscuro,
+                    color: AppColors.textPrimary,
                   ),
                 ),
                 Text(
                   subtitulo,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Colores.grisAzulado,
+                  style: AppTypography.labelSmall.copyWith(
+                    color: AppColors.textSecondary,
                   ),
                 ),
               ],
             ),
           ),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.sm,
+              vertical: AppSpacing.xs,
+            ),
             decoration: BoxDecoration(
-              color: Colores.verdeClaro,
-              borderRadius: BorderRadius.circular(12),
+              color: AppColors.primaryContainer,
+              borderRadius: AppRadius.borderSm,
             ),
             child: Text(
               '$cantidad',
-              style: const TextStyle(
+              style: AppTypography.bodyMedium.copyWith(
                 fontWeight: FontWeight.w700,
-                color: Colores.verdeOscuro,
-                fontSize: 14,
+                color: AppColors.primary,
               ),
             ),
           ),
