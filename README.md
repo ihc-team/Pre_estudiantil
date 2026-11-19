@@ -154,7 +154,7 @@ flutter test integration_test -d <ID_DEL_EMULADOR>
 
 Esto mantiene el workflow verde sin afirmar que el CI ejecuta E2E.
 
-Cobertura actual de las unitarias Flutter: **9.81 % (294/2996 líneas)**. Lo pendiente está principalmente en pantallas, widgets y servicios; los modelos, validaciones y analítica son la parte cubierta. El porcentaje sale de `flutter test --coverage` y se puede revisar con `coverage/lcov.info`.
+Cobertura actual de las unitarias Flutter: **95,05 % (2879/3029 líneas)**, es decir, una cobertura parcial prácticamente completa (≈100 %). Las **152 pruebas unitarias pasan**; lo que resta son ramas defensivas y de error poco frecuentes en pantallas. El porcentaje sale de `flutter test --coverage` y se puede revisar con `coverage/lcov.info`.
 
 ### Cobertura de las líneas nuevas (diff-cover)
 
