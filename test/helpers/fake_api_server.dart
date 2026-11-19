@@ -46,38 +46,47 @@ class FakeApiServer {
     dotenv.loadFromString(
       envString: 'API_BASE_URL=http://127.0.0.1:${server.port}',
     );
-    server.listen(api._procesar);
+    server.listen(api._procesar, onError: (_, _) {});
     return api;
   }
 
   Future<void> _procesar(HttpRequest request) async {
-    final crudo = await utf8.decoder.bind(request).join();
-    final cuerpo = crudo.isEmpty
-        ? <String, dynamic>{}
-        : jsonDecode(crudo) as Map<String, dynamic>;
-    final solicitud = ApiRequest(
-      method: request.method,
-      path: request.uri.path,
-      query: request.uri.queryParameters,
-      body: cuerpo,
-      authorization: request.headers.value(HttpHeaders.authorizationHeader),
-    );
-
     try {
-      final respuesta = await handler(solicitud);
-      request.response.statusCode = respuesta.status;
-      request.response.headers.contentType = ContentType.json;
-      request.response.write(jsonEncode(respuesta.body));
-      await request.response.close();
-    } catch (e) {
-      request.response.statusCode = 500;
-      request.response.headers.contentType = ContentType.json;
-      request.response.write(jsonEncode({'error': e.toString()}));
-      await request.response.close();
+      final crudo = await utf8.decoder.bind(request).join();
+      final cuerpo = crudo.isEmpty
+          ? <String, dynamic>{}
+          : jsonDecode(crudo) as Map<String, dynamic>;
+      final solicitud = ApiRequest(
+        method: request.method,
+        path: request.uri.path,
+        query: request.uri.queryParameters,
+        body: cuerpo,
+        authorization: request.headers.value(HttpHeaders.authorizationHeader),
+      );
+
+      try {
+        final respuesta = await handler(solicitud);
+        request.response.statusCode = respuesta.status;
+        request.response.headers.contentType = ContentType.json;
+        request.response.write(jsonEncode(respuesta.body));
+        await request.response.close();
+      } catch (e) {
+        request.response.statusCode = 500;
+        request.response.headers.contentType = ContentType.json;
+        request.response.write(jsonEncode({'error': e.toString()}));
+        await request.response.close();
+      }
+    } catch (_) {
+      try {
+        await request.response.close();
+      } catch (_) {
+        return;
+      }
     }
   }
 
   Future<void> close() async {
+    await Future<void>.delayed(const Duration(milliseconds: 50));
     await _server.close(force: true);
   }
 }
