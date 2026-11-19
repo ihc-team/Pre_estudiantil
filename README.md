@@ -156,6 +156,24 @@ Esto mantiene el workflow verde sin afirmar que el CI ejecuta E2E.
 
 Cobertura actual de las unitarias Flutter: **9.81 % (294/2996 líneas)**. Lo pendiente está principalmente en pantallas, widgets y servicios; los modelos, validaciones y analítica son la parte cubierta. El porcentaje sale de `flutter test --coverage` y se puede revisar con `coverage/lcov.info`.
 
+### Cobertura de las líneas nuevas (diff-cover)
+
+La cobertura que exige la tarea final se calcula solo sobre las líneas agregadas en el fork, no sobre todo el proyecto. Instala `diff-cover` y genera el reporte desde la raíz:
+
+```bash
+python -m pip install diff-cover
+flutter test --coverage
+diff-cover coverage/lcov.info --compare-branch=origin/main --html-report build/coverage/diff-cover.html
+```
+
+Para usarlo como compuerta de 100 %:
+
+```bash
+diff-cover coverage/lcov.info --compare-branch=origin/main --fail-under=100
+```
+
+El reporte HTML queda en `build/coverage/diff-cover.html`. Ajusta `origin/main` si la rama base del fork es otra.
+
 Pruebas de integración, con backend y dispositivo/emulador activos:
 
 ```bash
