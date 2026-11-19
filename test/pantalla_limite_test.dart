@@ -145,6 +145,9 @@ void main() {
   testWidgets('navega meses, soporta límite nulo y errores', (tester) async {
     pantallaGrande(tester);
     api.handler = (request) async {
+      if (request.method == 'PUT') {
+        return const ApiReply({'error': 'No se pudo guardar'}, 500);
+      }
       if (request.path == '/limite') {
         return const ApiReply({
           'mes': null,
@@ -155,9 +158,6 @@ void main() {
       }
       if (request.path == '/presupuestos-categoria') {
         return const ApiReply({'categorias': []});
-      }
-      if (request.method == 'PUT') {
-        return const ApiReply({'error': 'No se pudo guardar'}, 500);
       }
       return const ApiReply({});
     };
