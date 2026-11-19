@@ -147,7 +147,6 @@ class _PantallaDetalleMetaState extends State<PantallaDetalleMeta> {
       ),
     );
 
-    controlador.dispose();
     return resultado;
   }
 
@@ -258,7 +257,6 @@ class _PantallaDetalleMetaState extends State<PantallaDetalleMeta> {
       ),
     );
 
-    controlador.dispose();
     return resultado;
   }
 
